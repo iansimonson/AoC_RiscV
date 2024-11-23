@@ -33,6 +33,10 @@ static const char *TAG = "AOC Downloader";
 static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 static void download_aoc_problem(int day);
 
+char *input = NULL;
+u32_t input_len = 0;
+u32_t data_len = 0;
+
 void app_main(void)
 {
     esp_err_t rc = nvs_flash_init();
@@ -80,6 +84,10 @@ void app_main(void)
         ESP_LOGW(TAG, "Unexpected event!");
     }
 
+    input = NULL;
+    input_len = 0;
+    data_len = 0;
+
     printf("Go ahead with downloading?\n");
     char response = 0xff;
     do {
@@ -87,9 +95,19 @@ void app_main(void)
     } while (response == 0xff);
     if (response == 'Y' || response == 'y') {
         download_aoc_problem(1);
+        printf("Downloaded input. input= %p, input_len= %lu, data_len= %lu\n", input, input_len, data_len);
+        // DO SOLUTION
+        printf("Running Part 1:\n");
+        printf("Part1: %d", 0);
+        printf("Running Part 2:\n");
+        printf("Part2: %d\n", 0);
     } else {
         printf("Got %c so skipping download. Terminating...\n", response);
     }
+
+    free(input);
+    input = NULL;
+    input_len = 0;
 
 
     ESP_ERROR_CHECK(esp_wifi_stop());
@@ -137,13 +155,27 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_ON_HEADER:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
-            printf("%.*s", evt->data_len, (char*)evt->data);
+            if (strcmp(evt->header_key, "Content-Length") == 0) {
+                printf("Got Content-Length! - %s\n", evt->header_value);
+                u32_t content_length = strtol(evt->header_value, NULL, 10);
+                input = malloc(content_length);
+                if (input == NULL) {
+                    ESP_LOGE(TAG, "Failed to malloc input buffer of size %lu. Exiting!", content_length);
+                    exit(1);
+                }
+                input_len = content_length;
+            }
             break;
-        case HTTP_EVENT_ON_DATA:
+        case HTTP_EVENT_ON_DATA: {
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-            printf("%.*s", evt->data_len, (char*)evt->data);
-
-            break;
+            int len = evt->data_len;
+            if (len + data_len > input_len) {
+                ESP_LOGE(TAG, "Received too much data got: %lu vs expected: %lu", len + data_len, input_len);
+                exit(1);
+            }
+            memcpy(input + data_len, evt->data, len);
+            data_len += len;
+        } break;
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
             break;
