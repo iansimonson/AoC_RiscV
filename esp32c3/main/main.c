@@ -37,6 +37,8 @@ char *input = NULL;
 u32_t input_len = 0;
 u32_t data_len = 0;
 
+extern void part1(char *input, u32_t len);
+
 void app_main(void)
 {
     esp_err_t rc = nvs_flash_init();
@@ -98,7 +100,8 @@ void app_main(void)
         printf("Downloaded input. input= %p, input_len= %lu, data_len= %lu\n", input, input_len, data_len);
         // DO SOLUTION
         printf("Running Part 1:\n");
-        printf("Part1: %d", 0);
+        part1(input, data_len);
+
         printf("Running Part 2:\n");
         printf("Part2: %d\n", 0);
     } else {
