@@ -37,8 +37,73 @@ char *input = NULL;
 u32_t input_len = 0;
 u32_t data_len = 0;
 
-extern void part1(char *input, u32_t len);
-extern void part2(char *input, u32_t len);
+extern void day1_part1(char *input, u32_t len);
+extern void day1_part2(char *input, u32_t len);
+
+typedef void (*solve_fn)(char*,u32_t);
+
+static void unimplemented(char *input, u32_t len)
+{
+    (void) input;
+    (void) len;
+    printf("This day is unimplemented\n");
+}
+
+solve_fn solutions_p1[25] = {
+    day1_part1,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+};
+
+solve_fn solutions_p2[25] = {
+    day1_part2,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+    unimplemented,
+};
 
 void app_main(void)
 {
@@ -91,22 +156,35 @@ void app_main(void)
     input_len = 0;
     data_len = 0;
 
-    printf("Go ahead with downloading?\n");
-    char response = 0xff;
+    printf("Enter Day to Solve:\n");
+    char next = 0xff;
+    char buffer[3] = {0};
+    int count = 0;
     do {
-        response = fgetc(stdin);
+        next = fgetc(stdin);
         vTaskDelay(1);
-    } while (response == 0xff);
-    if (response == 'Y' || response == 'y') {
-        download_aoc_problem(1);
-        printf("Downloaded input. input= %p, input_len= %lu, data_len= %lu\n", input, input_len, data_len);
-        // DO SOLUTION
-        printf("Running Part 1:\n");
-        part1(input, data_len);
-        printf("Running Part 2:\n");
-        part2(input, data_len);
+        if (next != 0xff && next != 0x0a) {
+            buffer[count++] = next;
+        }
+    } while (count < 2 && next != 0x0A);
+    if (count > 0) {
+        int day = strtol(buffer, NULL, 10);
+        if (day < 1 || day > 25) {
+            printf("Day out of range [1,25] got %d. Exiting...\n", day);
+        } else {
+            solve_fn part1 = solutions_p1[day - 1];
+            solve_fn part2 = solutions_p2[day - 1];
+            printf("Downloading day %d\n", day);
+            download_aoc_problem(day);
+            printf("Downloaded input. input= %p, input_len= %lu, data_len= %lu\n", input, input_len, data_len);
+            // DO SOLUTION
+            printf("Running Part 1:\n");
+            part1(input, data_len);
+            printf("Running Part 2:\n");
+            part2(input, data_len);
+        }
     } else {
-        printf("Got %c so skipping download. Terminating...\n", response);
+        printf("No day selected so skipping download. Terminating...\n");
     }
 
     free(input);

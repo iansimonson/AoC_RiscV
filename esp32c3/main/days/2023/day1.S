@@ -1,4 +1,4 @@
-    .global part1,part2,printf
+    .global day1_part1,day1_part2,printf
 
     .equ ZERO, 48
     .equ NINE, 58
@@ -20,7 +20,7 @@
 # Also assumes last line has a newline
 # ALSO ALSO - string length is to the end of the string
 # and does _not_ include a null terminator
-part1:
+day1_part1:
     li a7,0 # result will be in a7
     add a6,a0,a1 # end
     li a5,NEWLINE
@@ -75,7 +75,7 @@ done:
 # we were calling printf here and there
 # and starting to call other functions like
 # string_eq
-part2:
+day1_part2:
     # prologue
     addi sp,sp,-32
     sw ra,0(sp)
