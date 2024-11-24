@@ -1,9 +1,9 @@
     .global part1,part2,printf
 
-    .set ZERO 48
-    .set NINE 58
-    .set COLON 59
-    .set NEWLINE 0x0a
+    .equ ZERO, 48
+    .equ NINE, 58
+    .equ COLON, 59
+    .equ NEWLINE, 0x0a
 
     .text
 
@@ -23,7 +23,7 @@
 part1:
     li a7,0 # result will be in a7
     add a6,a0,a1 # end
-    li a5,$NEWLINE
+    li a5,NEWLINE
 loop_outer:
     bge a0,a6,done
     li t0,0 # values are guaranteed to exist so no need to check -1
@@ -85,120 +85,139 @@ part2:
     sw s1,8(sp)
     sw s2,12(sp)
     sw s3,16(sp)
+    sw s4,20(sp)
+    sw s5,24(sp)
+    sw s6,28(sp)
 
     # Initialize our string check table
+    la t1,(check_str_arr)
     la t0,one
-    sw t0,0(check_str_arr)
+    sw t0,0(t1)
     la t0,two
-    sw t0,4(check_str_arr)
+    sw t0,4(t1)
     la t0,three
-    sw t0,8(check_str_arr)
+    sw t0,8(t1)
     la t0,four
-    sw t0,12(check_str_arr)
+    sw t0,12(t1)
     la t0,five
-    sw t0,16(check_str_arr)
+    sw t0,16(t1)
     la t0,six
-    sw t0,20(check_str_arr)
+    sw t0,20(t1)
     la t0,seven
-    sw t0,24(check_str_arr)
+    sw t0,24(t1)
     la t0,eight
-    sw t0,28(check_str_arr)
+    sw t0,28(t1)
     la t0,nine
-    sw t0,32(check_str_arr)
+    sw t0,32(t1)
 
+    # we're calling functions so lets use store registers
+    li s6,0 # result
+    add s5,a0,a1 # s5 is the end of the buffer
+    mv s4,a0 # input ptr
+    li s3,36 # end offset for string arrays
 
-    li a7,0 # result
-    add a6,a0,a1 # a6 is the end
-    mv a5,a0 # input ptr
 p2_loop_outer:
-    bge a5,a6,p2_done
-p2_loop_inner_first_val: #guaranteed to hit _something_ before newline so no need to check
-    lb a0,(a5)
+    li s0,0
+    li s1,0
+    bge s4,s5,p2_done
+    j p2_loop_inner_start_val
+p2_inner_start_val_incr:
+    addi s4,s4,1
+p2_loop_inner_start_val: # guaranteed to hit _something_ before newline so no need to check
+    lb a0,(s4)
     mv a1,a0
     call is_digit
-    beqz a0,p2_inner_first_val_check_str
-    addi a1,a1,-$ZERO # get actual value
-    addi a5,a5,1 # increment input pointer
+    beqz a0,p2_inner_start_val_check_str
+    addi a1,a1,-ZERO # get actual value
     mv s0,a1 # store it for later
     mv s1,a1 # store end val in case we dont find another
-    j p2_inner_end_val
+    j p2_inner_end_val_incr
 p2_inner_start_val_check_str:
-    li t5,0
-    sub s2,a6,a5
+    li t5,0 # start offset
+    sub s2,s5,s4
     j p2_inner_start_val_check_str_value
 p2_inner_start_val_check_str_incr:
     addi t5,t5,4
-    beqi t5,40,p2_inner_start_val_incr
+    beq t5,s3,p2_inner_start_val_incr
 p2_inner_start_val_check_str_value:
-    mv a0,a5
-    mv a1,s2
+    mv a0,s4
     la t4,(check_str_arr)
     la t6,(len_arr)
     add t4,t4,t5
     add t6,t6,t5
-    mv a2,t4
+    lw a2,(t4)
     lw a3,(t6)
+    blt s2,a3,p2_inner_start_val_check_str_incr
+    mv a1,a3
     call string_eq
-    beqz a0,p2_inner_start_val_check_str_incr:
+    beqz a0,p2_inner_start_val_check_str_incr # didn't match, check next str
     la t4,(value_arr)
     add t4,t4,t5
+    lw s0,(t4) # set start and end values to value_arr[t5]
     lw s1,(t4)
-    j p2_inner_start_val_incr
-
-
-
+    # no need to jump, we want to skip ahead here
 p2_inner_end_val_incr:
-    addi a5,a5,1
-p2_inner_end_val:
-    lb a0,(a5)
-    beqi a0,$NEWLINE,p2_inner_add_result
+    addi s4,s4,1
+p2_inner_end_val: # not used but keeping the symmetry to above
+    lb a0,(s4)
+    li t0,NEWLINE
+    beq a0,t0,p2_inner_add_result
     mv a1,a0
     call is_digit
     beqz a0,p2_inner_end_val_check_str
-    addi a1,a1,-$ZERO
+    addi a1,a1,-ZERO
     mv s1,a1
-    j p2_inner_end_val_incr
+    j p2_inner_end_val_incr # need to keep going until end of line
 p2_inner_end_val_check_str:
     li t5,0
-    sub s2,a6,a5
+    sub s2,s5,s4
     j p2_inner_end_val_check_str_value
 p2_inner_end_val_check_str_incr:
     addi t5,t5,4
-    beqi t5,40,p2_inner_end_val_incr
+    beq t5,s3,p2_inner_end_val_incr
 p2_inner_end_val_check_str_value:
-    mv a0,a5
-    mv a1,s2
+    mv a0,s4
     la t4,(check_str_arr)
     la t6,(len_arr)
     add t4,t4,t5
     add t6,t6,t5
-    mv a2,t4
+    lw a2,(t4)
     lw a3,(t6)
+    blt s2,a3,p2_inner_end_val_check_str_incr
+    mv a1,a3
     call string_eq
-    beqz a0,p2_inner_end_val_check_str_incr:
+    beqz a0,p2_inner_end_val_check_str_incr
     la t4,(value_arr)
     add t4,t4,t5
     lw s1,(t4)
     j p2_inner_end_val_incr
 
 p2_inner_add_result:
+    # la a0,dbg2
+    # mv a1,s0
+    # mv a2,s1
+    # call printf
     li t2,10
     mul s0,s0,t2
     add s0,s0,s1
-    add a7,a7,t0
-    j loop_outer
+    add s6,s6,s0
+    addi s4,s4,1
+    j p2_loop_outer
 
 p2_done:
-    mv a0,fmt2
-    mv a1,a7
+    la a0,fmt2
+    mv a1,s6
     call t0,print_result
 
     #epilogue
-    sw ra,0(sp)
-    sw fp,4(sp)
-    sw s1,8(sp)
-    sw s2,12(sp)
-    sw s3,16(sp)
+    lw ra,0(sp)
+    lw fp,4(sp)
+    lw s1,8(sp)
+    lw s2,12(sp)
+    lw s3,16(sp)
+    lw s4,20(sp)
+    lw s5,24(sp)
+    lw s6,28(sp)
     addi sp,sp,32
     ret
 
@@ -206,9 +225,9 @@ p2_done:
 # returns true if char is an ascii digit
 # a0 - byte
 is_digit:
-    slti t0,a0,$ZERO
+    slti t0,a0,ZERO
     xori t0,t0,1
-    slti t1,a0,$COLON
+    slti t1,a0,COLON
     and a0,t0,t1
     ret
 
@@ -218,12 +237,12 @@ is_digit:
 # a2 - data2
 # a3 - len2
 string_eq:
-    bneq a1,a3,done_false
+    bne a1,a3,done_false
 string_eq_loop:
     beqz a1,done_true
     lb t0,(a0)
     lb t1,(a2)
-    bneq t0,t1,done_false
+    bne t0,t1,done_false
     addi a0,a0,1
     addi a2,a2,1
     addi a1,a1,-1
@@ -257,6 +276,7 @@ check_str_arr: .space 36
     .section .rodata
 fmt1:    .string "part1: %d\n"
 fmt2:    .string "part2: %d\n"
+dbg2:    .string "v1: %d, v2: %d\n"
 
 one:    .string "one"
 two:    .string "two"

@@ -38,6 +38,7 @@ u32_t input_len = 0;
 u32_t data_len = 0;
 
 extern void part1(char *input, u32_t len);
+extern void part2(char *input, u32_t len);
 
 void app_main(void)
 {
@@ -94,6 +95,7 @@ void app_main(void)
     char response = 0xff;
     do {
         response = fgetc(stdin);
+        vTaskDelay(1);
     } while (response == 0xff);
     if (response == 'Y' || response == 'y') {
         download_aoc_problem(1);
@@ -101,9 +103,8 @@ void app_main(void)
         // DO SOLUTION
         printf("Running Part 1:\n");
         part1(input, data_len);
-
         printf("Running Part 2:\n");
-        printf("Part2: %d\n", 0);
+        part2(input, data_len);
     } else {
         printf("Got %c so skipping download. Terminating...\n", response);
     }
