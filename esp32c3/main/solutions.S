@@ -71,12 +71,10 @@ done:
 #
 # In this procedure s0 and s1 will be the
 # values we are looking for in the inner loop
-# a7 will contain the result as we don't call
-# anything until the end that might mess
-# a7
-# a5 will save the input ptr
-# a6 will save the end ptr address
-# s2 will contain a6-a5
+# we're using a lot of s* registers because
+# we were calling printf here and there
+# and starting to call other functions like
+# string_eq
 part2:
     # prologue
     addi sp,sp,-32
