@@ -1,4 +1,9 @@
-    .global part1,printf
+    .global part1,part2,printf
+
+    .set ZERO 48
+    .set NINE 58
+    .set COLON 59
+    .set NEWLINE 0x0a
 
     .text
 
@@ -18,7 +23,7 @@
 part1:
     li a7,0 # result will be in a7
     add a6,a0,a1 # end
-    li a5,0x0a
+    li a5,$NEWLINE
 loop_outer:
     bge a0,a6,done
     li t0,0 # values are guaranteed to exist so no need to check -1
@@ -28,7 +33,7 @@ loop_inner_start_value:
     addi a0,a0,1
     li t5,48 # 0 in ascii
     slt t3,t5,t2
-    slti t4,t2,58 # colon in ascii (one more than 9)
+    slti t4,t2,59 # colon in ascii (one more than 9)
     and t3,t3,t4
     beqz t3,loop_inner_start_value
     mv t0,t2
@@ -39,7 +44,7 @@ loop_inner_end_value:
     beq t2,a5,loop_inner_add_result # found end of line
 
     slt t3,t5,t2
-    slti t4,t2,58
+    slti t4,t2,59
     and t3,t3,t4
     beqz t3,loop_inner_end_value
     mv t1,t2
@@ -59,6 +64,177 @@ done:
     call t0,print_result
     ret
 
+# Now we have to check if e.g. "one" is
+# in the string
+# a0 - input
+# a1 - input_size
+#
+# In this procedure s0 and s1 will be the
+# values we are looking for in the inner loop
+# a7 will contain the result as we don't call
+# anything until the end that might mess
+# a7
+# a5 will save the input ptr
+# a6 will save the end ptr address
+# s2 will contain a6-a5
+part2:
+    # prologue
+    addi sp,sp,-32
+    sw ra,0(sp)
+    sw fp,4(sp)
+    sw s1,8(sp)
+    sw s2,12(sp)
+    sw s3,16(sp)
+
+    # Initialize our string check table
+    la t0,one
+    sw t0,0(check_str_arr)
+    la t0,two
+    sw t0,4(check_str_arr)
+    la t0,three
+    sw t0,8(check_str_arr)
+    la t0,four
+    sw t0,12(check_str_arr)
+    la t0,five
+    sw t0,16(check_str_arr)
+    la t0,six
+    sw t0,20(check_str_arr)
+    la t0,seven
+    sw t0,24(check_str_arr)
+    la t0,eight
+    sw t0,28(check_str_arr)
+    la t0,nine
+    sw t0,32(check_str_arr)
+
+
+    li a7,0 # result
+    add a6,a0,a1 # a6 is the end
+    mv a5,a0 # input ptr
+p2_loop_outer:
+    bge a5,a6,p2_done
+p2_loop_inner_first_val: #guaranteed to hit _something_ before newline so no need to check
+    lb a0,(a5)
+    mv a1,a0
+    call is_digit
+    beqz a0,p2_inner_first_val_check_str
+    addi a1,a1,-$ZERO # get actual value
+    addi a5,a5,1 # increment input pointer
+    mv s0,a1 # store it for later
+    mv s1,a1 # store end val in case we dont find another
+    j p2_inner_end_val
+p2_inner_start_val_check_str:
+    li t5,0
+    sub s2,a6,a5
+    j p2_inner_start_val_check_str_value
+p2_inner_start_val_check_str_incr:
+    addi t5,t5,4
+    beqi t5,40,p2_inner_start_val_incr
+p2_inner_start_val_check_str_value:
+    mv a0,a5
+    mv a1,s2
+    la t4,(check_str_arr)
+    la t6,(len_arr)
+    add t4,t4,t5
+    add t6,t6,t5
+    mv a2,t4
+    lw a3,(t6)
+    call string_eq
+    beqz a0,p2_inner_start_val_check_str_incr:
+    la t4,(value_arr)
+    add t4,t4,t5
+    lw s1,(t4)
+    j p2_inner_start_val_incr
+
+
+
+p2_inner_end_val_incr:
+    addi a5,a5,1
+p2_inner_end_val:
+    lb a0,(a5)
+    beqi a0,$NEWLINE,p2_inner_add_result
+    mv a1,a0
+    call is_digit
+    beqz a0,p2_inner_end_val_check_str
+    addi a1,a1,-$ZERO
+    mv s1,a1
+    j p2_inner_end_val_incr
+p2_inner_end_val_check_str:
+    li t5,0
+    sub s2,a6,a5
+    j p2_inner_end_val_check_str_value
+p2_inner_end_val_check_str_incr:
+    addi t5,t5,4
+    beqi t5,40,p2_inner_end_val_incr
+p2_inner_end_val_check_str_value:
+    mv a0,a5
+    mv a1,s2
+    la t4,(check_str_arr)
+    la t6,(len_arr)
+    add t4,t4,t5
+    add t6,t6,t5
+    mv a2,t4
+    lw a3,(t6)
+    call string_eq
+    beqz a0,p2_inner_end_val_check_str_incr:
+    la t4,(value_arr)
+    add t4,t4,t5
+    lw s1,(t4)
+    j p2_inner_end_val_incr
+
+p2_inner_add_result:
+    li t2,10
+    mul s0,s0,t2
+    add s0,s0,s1
+    add a7,a7,t0
+    j loop_outer
+
+p2_done:
+    mv a0,fmt2
+    mv a1,a7
+    call t0,print_result
+
+    #epilogue
+    sw ra,0(sp)
+    sw fp,4(sp)
+    sw s1,8(sp)
+    sw s2,12(sp)
+    sw s3,16(sp)
+    addi sp,sp,32
+    ret
+
+
+# returns true if char is an ascii digit
+# a0 - byte
+is_digit:
+    slti t0,a0,$ZERO
+    xori t0,t0,1
+    slti t1,a0,$COLON
+    and a0,t0,t1
+    ret
+
+# Compare two strings
+# a0 - data1
+# a1 - len1
+# a2 - data2
+# a3 - len2
+string_eq:
+    bneq a1,a3,done_false
+string_eq_loop:
+    beqz a1,done_true
+    lb t0,(a0)
+    lb t1,(a2)
+    bneq t0,t1,done_false
+    addi a0,a0,1
+    addi a2,a2,1
+    addi a1,a1,-1
+    j string_eq_loop
+done_true:
+    li a0,1
+    ret
+done_false:
+    li a0,0
+    ret
+
 
 # This is an _internal_ function, so make sure to call
 # it with t0 as the return address
@@ -67,13 +243,50 @@ done:
 # idk thought it's a cool thing about riscv
 print_result:
     addi sp,sp,-16
-    sw ra,16(sp)
-    sw t0,8(sp)
+    sw ra,8(sp)
+    sw t0,0(sp)
     call printf
-    lw t0,8(sp)
-    lw ra,16(sp)
+    lw t0,0(sp)
+    lw ra,8(sp)
     addi sp,sp,16
     jr t0
 
+    .data
+check_str_arr: .space 36
+
     .section .rodata
 fmt1:    .string "part1: %d\n"
+fmt2:    .string "part2: %d\n"
+
+one:    .string "one"
+two:    .string "two"
+three:    .string "three"
+four:    .string "four"
+five:    .string "five"
+six:    .string "six"
+seven:    .string "seven"
+eight:    .string "eight"
+nine:    .string "nine"
+
+len_arr:
+one_len: .word 3
+two_len: .word 3
+three_len: .word 5
+four_len: .word 4
+five_len: .word 4
+six_len: .word 3
+seven_len: .word 5
+eight_len: .word 5
+nine_len: .word 4
+
+value_arr:
+one_value: .word 1
+two_value: .word 2
+three_value: .word 3
+four_value: .word 4
+five_value: .word 5
+six_value: .word 6
+seven_value: .word 7
+eight_value: .word 8
+nine_value: .word 9
+
