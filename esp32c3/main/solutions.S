@@ -134,32 +134,34 @@ p2_inner_start_val_check_str:
     li t5,0 # start offset
     sub s2,s5,s4
     j p2_inner_start_val_check_str_value
-p2_inner_start_val_check_str_incr:
+p2_inner_start_val_check_str_incr: # iterate through the string array (i)
     addi t5,t5,4
     beq t5,s3,p2_inner_start_val_incr
 p2_inner_start_val_check_str_value:
     mv a0,s4
     la t4,(check_str_arr)
     la t6,(len_arr)
-    add t4,t4,t5
-    add t6,t6,t5
-    lw a2,(t4)
-    lw a3,(t6)
-    blt s2,a3,p2_inner_start_val_check_str_incr
-    mv a1,a3
+    add t4,t4,t5  # (check_str_arr + i)
+    add t6,t6,t5 # (len_arr + i)
+    lw a2,(t4) # sets a2 to a string pointer e.g. one -> "one"
+    lw a3,(t6) # sets a3 to the length associated with the pointer e.g. one_len -> 3
+    blt s2,a3,p2_inner_start_val_check_str_incr # bail if there's not enough input for this string
+    mv a1,a3 # set slice length for the input string
     call string_eq
     beqz a0,p2_inner_start_val_check_str_incr # didn't match, check next str
     la t4,(value_arr)
-    add t4,t4,t5
+    add t4,t4,t5 # (value_arr + i)
     lw s0,(t4) # set start and end values to value_arr[t5]
     lw s1,(t4)
     # no need to jump, we want to skip ahead here
 p2_inner_end_val_incr:
     addi s4,s4,1
 p2_inner_end_val: # not used but keeping the symmetry to above
+    # this loop is basically a copy of above but
+    # only affects the end val (s1)
     lb a0,(s4)
     li t0,NEWLINE
-    beq a0,t0,p2_inner_add_result
+    beq a0,t0,p2_inner_add_result # do math and sum to result when we hit newlines
     mv a1,a0
     call is_digit
     beqz a0,p2_inner_end_val_check_str
@@ -173,7 +175,7 @@ p2_inner_end_val_check_str:
 p2_inner_end_val_check_str_incr:
     addi t5,t5,4
     beq t5,s3,p2_inner_end_val_incr
-p2_inner_end_val_check_str_value:
+p2_inner_end_val_check_str_value: # basically identical to p2_inner_start_val_check_str_value
     mv a0,s4
     la t4,(check_str_arr)
     la t6,(len_arr)
