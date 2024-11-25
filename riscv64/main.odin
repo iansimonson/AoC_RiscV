@@ -1,9 +1,57 @@
 package riscv
 
-// NOT CURRENTLY WORKING RIP :(
-
 import "core:fmt"
+import "core:os"
+import "core:strconv"
+import "core:mem"
+import "base:runtime"
+
+unimplemented :: proc "c" (^u8,u32) {
+    context = runtime.default_context()
+    fmt.println("This day is unimplemented")
+}
+Solve_Fn :: #type proc "c" (^u8,u32)
+
+solutions_p1 := [25]Solve_Fn{
+    0 = day1_part1,
+    1..<25 = unimplemented,
+}
+
+solutions_p2 := [25]Solve_Fn{
+    0 = day1_part2,
+    1..<25 = unimplemented,
+}
 
 main :: proc() {
-    fmt.println("hellope!")
+    fmt.print("Enter day to solve: ")
+    buffer: [1024]u8
+    read, err := os.read(os.stdin, buffer[:])
+    if err != nil {
+        fmt.panicf("Got error, exiting. %v", err)
+    }
+    day, err_conv := strconv.parse_int(string(buffer[:read -1]))
+    if !err_conv {
+        fmt.println("Couldn't convert %s to a value", buffer[:read -1])
+        os.exit(1)
+    }
+    if day < 1 || day > 25 {
+        fmt.println("Day out of range [0, 25]. got %v", day)
+    }
+
+    input, read_err := os.read_entire_file(fmt.tprintf("days/2023/input%d", day))
+    if !read_err {
+        fmt.println("Error reading file")
+        os.exit(1)
+    }
+
+    fmt.printfln("Solving day %v", day)
+    solutions_p1[day - 1](raw_data(input), u32(len(input)))
+    solutions_p2[day - 1](raw_data(input), u32(len(input)))
+    fmt.println("Done...")
+}
+
+
+foreign {
+    day1_part1 :: proc "c" (input: ^u8, input_len: u32) ---
+    day1_part2 :: proc "c" (input: ^u8, input_len: u32) ---
 }
