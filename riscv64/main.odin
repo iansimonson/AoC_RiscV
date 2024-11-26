@@ -38,6 +38,7 @@ main :: proc() {
     }
     if day < 1 || day > 25 {
         fmt.println("Day out of range [0, 25]. got %v", day)
+        os.exit(1)
     }
 
     input, read_err := os.read_entire_file(fmt.tprintf("days/2023/input%d.txt", day))
