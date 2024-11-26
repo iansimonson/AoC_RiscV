@@ -1,8 +1,8 @@
     .global day1_part1,day1_part2,printf
 
     .equ ZERO, 48
-    .equ NINE, 58
-    .equ COLON, 59
+    .equ NINE, 57
+    .equ COLON, 58
     .equ NEWLINE, 0x0a
 
     .text

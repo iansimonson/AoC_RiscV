@@ -34,15 +34,17 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
 static void download_aoc_problem(int day);
 
 char *input = NULL;
-u32_t input_len = 0;
-u32_t data_len = 0;
+int input_len = 0;
+int data_len = 0;
 
-extern void day1_part1(char *input, u32_t len);
-extern void day1_part2(char *input, u32_t len);
+extern void day1_part1(char *input, int len);
+extern void day1_part2(char *input, int len);
+extern void day2_part1(char *input, int len);
+extern void day2_part2(char *input, int len);
 
-typedef void (*solve_fn)(char*,u32_t);
+typedef void (*solve_fn)(char*,int);
 
-static void unimplemented(char *input, u32_t len)
+static void unimplemented(char *input, int len)
 {
     (void) input;
     (void) len;
@@ -51,7 +53,7 @@ static void unimplemented(char *input, u32_t len)
 
 solve_fn solutions_p1[25] = {
     day1_part1,
-    unimplemented,
+    day2_part1,
     unimplemented,
     unimplemented,
     unimplemented,
@@ -79,7 +81,7 @@ solve_fn solutions_p1[25] = {
 
 solve_fn solutions_p2[25] = {
     day1_part2,
-    unimplemented,
+    day2_part2,
     unimplemented,
     unimplemented,
     unimplemented,
@@ -176,7 +178,7 @@ void app_main(void)
             solve_fn part2 = solutions_p2[day - 1];
             printf("Downloading day %d\n", day);
             download_aoc_problem(day);
-            printf("Downloaded input. input= %p, input_len= %lu, data_len= %lu\n", input, input_len, data_len);
+            printf("Downloaded input. input= %p, input_len= %d, data_len= %d\n", input, input_len, data_len);
             // DO SOLUTION
             printf("Running Part 1:\n");
             part1(input, data_len);
@@ -239,10 +241,10 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
             if (strcmp(evt->header_key, "Content-Length") == 0) {
                 printf("Got Content-Length! - %s\n", evt->header_value);
-                u32_t content_length = strtol(evt->header_value, NULL, 10);
+                int content_length = (int) strtol(evt->header_value, NULL, 10);
                 input = malloc(content_length);
                 if (input == NULL) {
-                    ESP_LOGE(TAG, "Failed to malloc input buffer of size %lu. Exiting!", content_length);
+                    ESP_LOGE(TAG, "Failed to malloc input buffer of size %d. Exiting!", content_length);
                     exit(1);
                 }
                 input_len = content_length;
@@ -252,7 +254,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             int len = evt->data_len;
             if (len + data_len > input_len) {
-                ESP_LOGE(TAG, "Received too much data got: %lu vs expected: %lu", len + data_len, input_len);
+                ESP_LOGE(TAG, "Received too much data got: %d vs expected: %d", len + data_len, input_len);
                 exit(1);
             }
             memcpy(input + data_len, evt->data, len);

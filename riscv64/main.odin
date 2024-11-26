@@ -6,20 +6,22 @@ import "core:strconv"
 import "core:mem"
 import "base:runtime"
 
-unimplemented :: proc "c" (^u8,u32) {
+unimplemented :: proc "c" ([]u8) {
     context = runtime.default_context()
     fmt.println("This day is unimplemented")
 }
-Solve_Fn :: #type proc "c" (^u8,u32)
+Solve_Fn :: #type proc "c" ([]u8)
 
 solutions_p1 := [25]Solve_Fn{
     0 = day1_part1,
-    1..<25 = unimplemented,
+    1 = day2_part1,
+    2..<25 = unimplemented,
 }
 
 solutions_p2 := [25]Solve_Fn{
     0 = day1_part2,
-    1..<25 = unimplemented,
+    1 = day2_part2,
+    2..<25 = unimplemented,
 }
 
 main :: proc() {
@@ -38,20 +40,23 @@ main :: proc() {
         fmt.println("Day out of range [0, 25]. got %v", day)
     }
 
-    input, read_err := os.read_entire_file(fmt.tprintf("days/2023/input%d", day))
+    input, read_err := os.read_entire_file(fmt.tprintf("days/2023/input%d.txt", day))
     if !read_err {
         fmt.println("Error reading file")
         os.exit(1)
     }
 
     fmt.printfln("Solving day %v", day)
-    solutions_p1[day - 1](raw_data(input), u32(len(input)))
-    solutions_p2[day - 1](raw_data(input), u32(len(input)))
+    solutions_p1[day - 1](input)
+    solutions_p2[day - 1](input)
     fmt.println("Done...")
 }
 
 
+// Odin places slices into registers as a0: data, a1: len
 foreign {
-    day1_part1 :: proc "c" (input: ^u8, input_len: u32) ---
-    day1_part2 :: proc "c" (input: ^u8, input_len: u32) ---
+    day1_part1 :: proc "c" (input: []u8) ---
+    day1_part2 :: proc "c" (input: []u8) ---
+    day2_part1 :: proc "c" (input: []u8) ---
+    day2_part2 :: proc "c" (input: []u8) ---
 }

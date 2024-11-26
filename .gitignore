@@ -2,3 +2,4 @@ sdkconfig*
 .vscode
 .cache
 build
+input*.txt
