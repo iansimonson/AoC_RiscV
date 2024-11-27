@@ -242,7 +242,7 @@ d3p2_cgr_left:
     mv      a1,s3                           # beginning of input
     mv      a2,s2                           # end of input
     call    find_num_range                  # number range is [a0, a1)
-    call    parse_int                       # a0 now contains the value
+    call    day3_parse_int                       # a0 now contains the value
     mul     a7,a7,a0                        # multiply gear ratio
 d3p2_cgr_right:
     andi    a5,a6,2
@@ -252,7 +252,7 @@ d3p2_cgr_right:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_up:
     andi    a5,a6,4
@@ -262,7 +262,7 @@ d3p2_cgr_up:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_down:
     andi    a5,a6,8
@@ -272,7 +272,7 @@ d3p2_cgr_down:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_top_left:
     andi    a5,a6,16
@@ -283,7 +283,7 @@ d3p2_cgr_top_left:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_top_right:
     andi    a5,a6,32
@@ -294,7 +294,7 @@ d3p2_cgr_top_right:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_bottom_left:
     andi    a5,a6,64
@@ -305,7 +305,7 @@ d3p2_cgr_bottom_left:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_bottom_right:
     andi    a5,a6,128
@@ -316,7 +316,7 @@ d3p2_cgr_bottom_right:
     mv      a1,s3
     mv      a2,s2
     call    find_num_range
-    call    parse_int
+    call    day3_parse_int
     mul     a7,a7,a0
 d3p2_cgr_done:
     add     s0,s0,a7
@@ -400,23 +400,23 @@ fnb_search_done:
 # a0 - start of range (includsive) and
 # a1 - end of range (exclusive)
 # pre: a0 points to a digit
-parse_int:
+day3_parse_int:
     li      t1,10
     mv      t2,a0
     mv      t3,a1
     li      a0,0
     li      a1,0
-    j       parse_int_loop
-parse_int_loop_iter:
+    j       day3_parse_int_loop
+day3_parse_int_loop_iter:
     addi    t2,t2,1
-parse_int_loop:
-    beq     t2,t3,parse_int_done
+day3_parse_int_loop:
+    beq     t2,t3,day3_parse_int_done
     lb      a1,(t2)
     addi    a1,a1,-ZERO
     mul     a0,a0,t1
     add     a0,a0,a1
-    j       parse_int_loop_iter
-parse_int_done:
+    j       day3_parse_int_loop_iter
+day3_parse_int_done:
     ret
 
     .data
