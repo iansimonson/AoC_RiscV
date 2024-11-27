@@ -1,4 +1,4 @@
-    .global day4_part1,day4_part2
+    .global day4_part1,day4_part2,printf,memset
 
     .equ    COLON, 58
     .equ    PIPE, 124
@@ -130,10 +130,131 @@ d4p1_done:
 d4p1_done_early:
     ret
 
+# this is going to be basically identical code to above
+# but instead of counting points we'll count cards
+# and need a multiplier array...
+# Since I already did the "correct" thing and found
+# the size of the winning numbers array before...
+# I'm just going to cheat for p2 and alloca an array
+# for the winning numbers and games and just over allocate
+# and then keep track of how many winning numbers and games actually
+# exist...so like 300 games of space and 20 of winning numbers
 day4_part2:
+    beqz    a1,d4p2_done_early
+    addi    sp,sp,-1312                             # prologue
+    sw      ra,0(sp)
+    sw      fp,4(sp)
+    sw      s1,8(sp)
+    sw      s2,12(sp)
+    sw      s3,16(sp)
+    sw      s4,20(sp)
+    sw      s5,24(sp)
+
+    li s0,0 # result
+    mv s1,a0 # s1 = input ptr
+    add s2,a0,a1 # s2 = end ptr
+    li s3,0 # UNUSED
+    addi s4,sp,32 # beginning of winning numbers array
+    addi s5,sp,112 # current index into card multiplier array
+
+    mv a0,s4
+    li a1,0
+    li a2,80 # 20 words
+    call memset
+    mv a0,s5
+    li a1,0
+    li a2,1200 # 300 individual cards
+    call memset # can't memset 1 like I'd like, instead would have to loop manually
+
+d4p2_outer_loop:
+d4p2_find_colon:
+    addi    s1,s1,1
+    bge s1,s2,d4p2_done
+    lb      t0,(s1)
+    addi    t0,t0,-COLON
+    bnez    t0,d4p2_find_colon
+    mv      a7,s4                                 # write the values into our stack array
+d4p2_find_next_digit:
+    addi    s1,s1,1
+    lb      a0,(s1)
+    addi    a1,a0,-PIPE
+    beqz    a1,d4p2_check_winning_numbers
+    call    is_digit
+    beqz    a0,d4p2_find_next_digit
+    mv      a0,s1                                 # load beginning of number pointer
+    call    parse_int
+    sw      a0,(a7)                               # write number into stack array
+    addi    a7,a7,4                               # next index of stack array
+    mv      s1,a1                                 # update s1 to point to beyond the end of this number
+    j       d4p2_find_next_digit
+d4p2_check_winning_numbers:
+    mv a6,a7 # save off the end pointer for the stack
+    li a5,0 # number of cards we'll win
+    j d4p2_find_next_digit_2
+d4p2_find_next_digit_2_incr:
+    addi s1,s1,1
+d4p2_find_next_digit_2:
+    lb      a0,(s1)
+    addi    a1,a0,-NEWLINE
+    beqz    a1,d4p2_card_done
+    call    is_digit
+    beqz    a0,d4p2_find_next_digit_2_incr
+    mv      a0,s1                                 # at a digit!
+    call    parse_int
+    mv      s1,a1                                 # update the input pointer
+    mv a7,s4 # reset stack pointer for winning numbers
+d4p2_check_is_winning_loop:
+    beq a7,a6,d4p2_find_next_digit_2
+    lw t0,(a7)
+    addi a7,a7,4
+    bne t0,a0,d4p2_check_is_winning_loop
+    addi a5,a5,1 # is winning number! add 1 to cards
+    j d4p2_find_next_digit_2
+d4p2_card_done:
+    lw t0,(s5) # load the multiplier for this card
+    addi t0,t0,1 # add 1 for the card we just processed
+    sw t0,(s5) # this could be removed if we just memset above, but I didn't want to loop
+    mv t1,s5 # so we can update the next cards multipliers
+    addi t1,t1,4 # next word (i + 1)
+    addi s5,s5,4 # to prepare for next iteration
+d4p2_card_done_loop:
+    beqz a5,d4p2_outer_loop
+    lw t2,(t1) # load multiplier for card i
+    add t2,t2,t0 # add number of this card's mult to next card mulitplier
+    sw t2,(t1) # update multiplier for card i
+    addi a5,a5,-1
+    addi t1,t1,4 # increment card mult pointer
+    j d4p2_card_done_loop
+
+d4p2_done: # now just need to sum all the cards
+    add a0,sp,112 # beginning of mult array
+d4p2_done_loop:
+    beq a0,s5,d4p2_done_print
+    lw t0,(a0)
+    add s0,s0,t0
+    addi a0,a0,4
+    j d4p2_done_loop
+
+d4p2_done_print:
+    la a0,d4p2_fmt
+    mv a1,s0
+    call printf
+
+
+    lw      ra,0(sp)
+    lw      fp,4(sp)
+    lw      s1,8(sp)
+    lw      s2,12(sp)
+    lw      s3,16(sp)
+    lw      s4,20(sp)
+    lw      s5,24(sp)
+    addi    sp,sp,1312                             # epilogue
+d4p2_done_early:
     ret
 
 
     .data
 d4p1_fmt:
     .string "Part1: %d\n"
+d4p2_fmt:
+    .string "Part2: %d\n"
