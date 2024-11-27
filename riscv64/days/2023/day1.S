@@ -222,39 +222,6 @@ p2_done:
     ret
 
 
-# returns true if char is an ascii digit
-# a0 - byte
-is_digit:
-    slti     t0,a0,ZERO
-    xori     t0,t0,1
-    slti     t1,a0,COLON
-    and      a0,t0,t1
-    ret
-
-# Compare two strings
-# a0 - data1
-# a1 - len1
-# a2 - data2
-# a3 - len2
-string_eq:
-    bne      a1,a3,done_false
-string_eq_loop:
-    beqz     a1,done_true
-    lb       t0,(a0)
-    lb       t1,(a2)
-    bne      t0,t1,done_false
-    addi     a0,a0,1
-    addi     a2,a2,1
-    addi     a1,a1,-1
-    j        string_eq_loop
-done_true:
-    li       a0,1
-    ret
-done_false:
-    li       a0,0
-    ret
-
-
 # This is an _internal_ function, so make sure to call
 # it with t0 as the return address
 # saves off ra and t0 and calls printf

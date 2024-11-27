@@ -253,20 +253,6 @@ d2p2_done:
 
 # Functions that both parts might want to use
 
-# returns true if char is an ascii digit
-# a0 - byte
-# uses a0, t0, and t1
-# I'm not using this as a true function
-# because I don't save any registers before
-# calling. I just make sure a0, t0, and t1
-# don't have anything I need in them
-is_digit:
-    slti    t0,a0,ZERO
-    xori    t0,t0,1
-    slti    t1,a0,COLON
-    and     a0,t0,t1
-    ret
-
 # Not really a function, this is more of a
 # procedure which I then hotloop on
 # for debugging
@@ -277,13 +263,7 @@ d2_die:
     j       d2_die
 
     .data
-unreachable_fmt:
-    .string "HOW DID WE GET HERE?\n"
-d2p1_debug_fmt:
-    .string "Game %d validated\n"
-d2p1_fmt:
-.string "Part1:
-    %d\n"
-d2p2_fmt:
-.string "Part2:
-    %d\n"
+unreachable_fmt: .string "HOW DID WE GET HERE?\n"
+d2p1_debug_fmt: .string "Game %d validated\n"
+d2p1_fmt: .string "Part1: %d\n"
+d2p2_fmt: .string "Part2: %d\n"
