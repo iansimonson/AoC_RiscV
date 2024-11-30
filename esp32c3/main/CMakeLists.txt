@@ -1,8 +1,3 @@
-idf_component_register(SRCS 
-    "main.c"
-    "days/2023/day1.S"
-    "days/2023/day2.S"
-    "days/2023/day3.S"
-    "days/2023/day4.S"
-    "days/2023/utility.S"
+idf_component_register(
+    SRC_DIRS "." "days/${AOC_YEAR}"
     INCLUDE_DIRS ".")

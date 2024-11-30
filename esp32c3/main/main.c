@@ -18,6 +18,7 @@
 #include "esp_http_client.h"
 #include "esp_crt_bundle.h"
 #include "esp_log.h"
+#include AOC_INCLUDE_DAYS
 
 static EventGroupHandle_t g_wifi_event_group;
 
@@ -36,80 +37,6 @@ static void download_aoc_problem(int day);
 char *input = NULL;
 int input_len = 0;
 int data_len = 0;
-
-extern void day1_part1(char *input, int len);
-extern void day1_part2(char *input, int len);
-extern void day2_part1(char *input, int len);
-extern void day2_part2(char *input, int len);
-extern void day3_part1(char *input, int len);
-extern void day3_part2(char *input, int len);
-extern void day4_part1(char *input, int len);
-extern void day4_part2(char *input, int len);
-
-typedef void (*solve_fn)(char*,int);
-
-static void unimplemented(char *input, int len)
-{
-    (void) input;
-    (void) len;
-    printf("This day is unimplemented\n");
-}
-
-solve_fn solutions_p1[25] = {
-    day1_part1,
-    day2_part1,
-    day3_part1,
-    day4_part1,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-};
-
-solve_fn solutions_p2[25] = {
-    day1_part2,
-    day2_part2,
-    day3_part2,
-    day4_part2,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-    unimplemented,
-};
 
 void app_main(void)
 {
@@ -285,7 +212,7 @@ static void download_aoc_problem(int day)
 
     ESP_LOGI(TAG, "Downloading day %d", day);
     char url_buf[48] = {0};
-    sprintf(url_buf, "%s/2023/day/%d/input", AOC_SERVER, day);
+    sprintf(url_buf, "%s/%s/day/%d/input", AOC_SERVER, AOC_YEAR, day);
     // sprintf(url_buf, "%s/", AOC_SERVER);
     char session_buf[196] = {0};
     sprintf(session_buf, "session=%s", TOKEN);
