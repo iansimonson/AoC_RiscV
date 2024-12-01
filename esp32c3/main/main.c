@@ -78,9 +78,9 @@ void app_main(void)
     EventBits_t bits = xEventGroupWaitBits(g_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_FAIL_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
 
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(TAG, "EYY connected to wifi SSID:%s password%s", SSID, PASSWORD);
+        ESP_LOGI(TAG, "EYY connected to wifi SSID:%s password%s", "*****", "*****");
     } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGE(TAG, "Failed to connect to wifi SSID:%s password%s", SSID, PASSWORD);
+        ESP_LOGE(TAG, "Failed to connect to wifi SSID:%s password%s", "*****", "*****");
     } else {
         ESP_LOGW(TAG, "Unexpected event!");
     }

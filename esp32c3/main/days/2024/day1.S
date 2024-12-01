@@ -146,10 +146,14 @@ d1p2_count_newlines: # while input_ptr < end
 d1p2_count_newlines_done:
     slli a2,a2,2 # we can store as words a2 << 2
     mv s3,a2 # store the byte size in s3 so we can adjust the stack later
-    sub sp,sp,s3 # first array
-    mv s4,sp
-    sub sp,sp,s3
-    mv s5,sp # second array
+    mv a0,s3
+    call malloc
+    beqz a0,d1_die
+    mv s4,a0 # first array
+    mv a0,s3
+    call malloc
+    beqz a0,d1_die
+    mv s5,a0 # second array
 d1p2_parse_arrays:
     mv a6,s4 # a6 is (first_arr + i)
     mv a7,s5 # a7 is (second_arr + i)
@@ -223,8 +227,10 @@ calc_simularity_score_done:
     mv a1,s0
     call printf
 
-    add sp,sp,s3 # free second_arr
-    add sp,sp,s3 # free first_arr
+    mv a0,s4
+    call free
+    mv a0,s5
+    call free
     lw      ra,0(sp)
     lw      fp,4(sp)
     lw      s1,8(sp)
