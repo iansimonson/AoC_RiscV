@@ -1,4 +1,4 @@
-    .global is_digit,string_eq,parse_int_range,parse_int
+    .global is_digit,string_eq,parse_int_range,parse_int,sort_int
 
     .equ    ZERO, 48
     .equ    COLON, 58          # because COLON is one after '9'
@@ -104,38 +104,38 @@ parse_int_done:
 # for things that are int size
 # e.g. int
 # a0 - Array
-# a1 - lo - inclusive
+# a1 - lo - inclusive (index, not byte size)
 # a2 - hi - inclusive
 quick_sort_int:
-    .equ IDX_SIZE, 4 # int size...really this should be XLEN
+    .equ IDX_SIZE, 4 # int size (4 bytes)
     bge a1,a2,qs_done_early
     bltz a1,qs_done_early
     
-    addi    sp,sp,-32 # prologue
-    sw      ra,0(sp)
-    sw      fp,4(sp)
-    sw      s1,8(sp)
-    sw      s2,12(sp)
-    sw      s3,16(sp)
-
-    slli a1,a1,2 # get byte sizes
-    slli a2,a2,2 # get byte sizes
+    addi    sp,sp,-64 # prologue
+    sd      ra,0(sp)
+    sd      fp,8(sp)
+    sd      s1,16(sp)
+    sd      s2,24(sp)
+    sd      s3,32(sp)
 
     mv s1,a1 # save lo for later
     mv s2,a2 # save hi
+
+    slli a1,a1,2 # byte size
+    slli a2,a2,2
 
 qs_partition:
     add t0,a0,a2 # t0 = A + hi (last element)
     mv t3,t0 # t3 = end = hi
     lw t0,(t0) # pivot = A[hi]
-    mv t1,s1 # pivot index is lo
+    slli t1,s1,2 # pivot index is lo
     mv t2,t1 # for j = lo
     j qs_partition_loop
 qs_partition_loop_incr:
     addi t2,t2,IDX_SIZE # j += 1
 qs_partition_loop:
-    beq t2,t3,qs_partition_loop_done
     add a3,a0,t2 # A + j
+    beq a3,t3,qs_partition_loop_done
     lw t4,(a3) # t4 = A[j]
     bgt t4,t0,qs_partition_loop_incr
     add t5,a0,t1 # t5 = A + i
@@ -151,21 +151,21 @@ qs_partition_loop_done:
     sw a4,(t3)
     sw t4,(t5)
 
-    mv s3,t1 # save off pivot index
+    srli s3,t1,2 # save off pivot index as index
     mv a1,s1 # lo = lo
-    addi a2,s3,-IDX_SIZE # hi = p - 1
-    call quick_sort_word
-    addi a1,s3,IDX_SIZE # lo = p + 1
+    addi a2,s3,-1 # hi = p - 1
+    call quick_sort_int
+    addi a1,s3,1 # lo = p + 1
     mv a2,s2 # hi = hi
-    call quick_sort_word
+    call quick_sort_int
 
 qs_done:
-    lw      ra,0(sp)
-    lw      fp,4(sp)
-    lw      s1,8(sp)
-    lw      s2,12(sp)
-    lw      s3,16(sp)
-    addi    sp,sp,32 # epilogue
+    ld      ra,0(sp)
+    ld      fp,8(sp)
+    ld      s1,16(sp)
+    ld      s2,24(sp)
+    ld      s3,32(sp)
+    addi    sp,sp,64 # epilogue
 
 qs_done_early:
     ret
@@ -173,14 +173,14 @@ qs_done_early:
 
 # Sorts an array with signed 32-bit integers
 # a0 - ptr to start
-# a1 - length  of array
+# a1 - length  of array (in integers not bytes!)
 # AFTER:
 # a0 is sorted
 sort_int:
     beqz a1,sort_int_done
     mv t0,a1
     li a1,0 # starting index == 0
-    addi a2,t0,-4 # hi = length - 1
+    addi a2,t0,-1 # hi = length - 1
     mv a7,ra # save return register b/c quick_sort doesn't use a7
     call quick_sort_int
     mv ra,a7 # restore the ra
