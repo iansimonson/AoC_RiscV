@@ -111,7 +111,7 @@ quick_sort_int:
     bge a1,a2,qs_done_early
     bltz a1,qs_done_early
     
-    addi    sp,sp,-24 # prologue
+    addi    sp,sp,-32 # prologue
     sw      ra,0(sp)
     sw      fp,4(sp)
     sw      s1,8(sp)
@@ -165,7 +165,7 @@ qs_done:
     lw      s1,8(sp)
     lw      s2,12(sp)
     lw      s3,16(sp)
-    addi    sp,sp,24 # epilogue
+    addi    sp,sp,32 # epilogue
 
 qs_done_early:
     ret
