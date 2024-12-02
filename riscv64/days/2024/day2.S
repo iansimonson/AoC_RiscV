@@ -162,11 +162,11 @@ d2p2_done:
 # a1 - index to skip
 # returns a0 - true/false
 is_safe:
-    li      a2,1                                   # index to check
+    li      a2,0                                   # index to check
     li      t0,0                                   # is increasing
     li      t1,0                                   # is decreasing
     li      t3,1                                   # diffs ok
-    lw      a3,(sp)                                # previous value in a3
+    li      a3,-1                                  # previous value in a3, set to "unset"
     j       is_safe_loop
 is_safe_loop_incr:
     addi    a2,a2,1
@@ -176,6 +176,7 @@ is_safe_loop:
     slli    t4,a2,2                                # byte offset
     add     t4,sp,t4                               # t4 is now array + i
     lw      t4,(t4)                                # t4 = array[i]
+    bltz    a3,is_safe_loop_first_number           # if a3 < 0, first number we care about
     slt     t5,t4,a3                               # is decreasing
     or      t0,t0,t5                               # or it into t0
     slt     t5,a3,t4                               # is increasing
@@ -192,6 +193,9 @@ is_safe_skip_neg:
     and     t4,t4,t6                               # both must be true
     and     t3,t3,t4                               # t3 is "diffs ok"
     j       is_safe_loop_incr
+is_safe_loop_first_number:
+    mv      a3,t4                                  # just set the value, don't check increase, decrease, or diff
+    j       is_safe_loop_incr
 is_safe_done:
     xor     t0,t0,t1                               # make sure we're only increasing or decreasing
     and     a0,t0,t3                               # were all diffs ok, and only increasing or decreasing
@@ -199,6 +203,8 @@ is_safe_done:
 
     .data
 d2p1_fmt:
-    .string "Part1: %d\n"
+.string "Part1:
+    %d\n"
 d2p2_fmt:
-    .string "Part2: %d\n"
+.string "Part2:
+    %d\n"
