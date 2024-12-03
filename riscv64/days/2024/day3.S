@@ -1,4 +1,4 @@
-    .global day3_part1,day3_part2,printf,part1_fmt,is_digit,parse_int
+    .global day3_part1,day3_part2,printf,part1_fmt,part2_fmt,is_digit,parse_int
 
     .text
 # So some string parsing again
@@ -24,7 +24,7 @@ day3_part1:
     li      s0,0                                                      # result
     mv      s1,a0                                                     # input ptr
     add     s2,a0,t0                                                  # end (length - 8 b/c not possible to parse after that)
-    add      s3,a0,a1                                                     # actual end of input for later check
+    add     s3,a0,a1                                                  # actual end of input for later check
     j       d3p1_search_mul
 
 # we only increment after confirming something is the value (other than m)
@@ -116,28 +116,28 @@ day3_part2:
     li      s0,0                                                      # result
     mv      s1,a0                                                     # input ptr
     add     s2,a0,t0                                                  # end (length - 8 b/c not possible to parse after that)
-    add      s3,a0,a1                                                     # actual end of input for later check
-    li a7,1 # mults are enabled by default
+    add     s3,a0,a1                                                  # actual end of input for later check
+    li      a7,1                                                      # mults are enabled by default
     j       d3p2_search_mul
 
 # we only increment after confirming something is the value (other than m)
 # because we might have e.g. mmmul(1,1) which is valid
 d3p2_search_mul:
     bge     s1,s2,d3p2_done
-    li t0,'d'
-    lb a1,(s1)
-    bne a1,t0,d3p2_try_parse_mul
-    addi s1,s1,1 # ok because this _was_ a 'd'
-    mv a0,s1 # setup for call parse_do_dont
-    call parse_do_dont
-    beqz a0,d3p2_search_mul # if wasn't a do or don't then continue parsing from s1
-    mv s1,a2 # update pointer if we did parse a do/don't so we don't reparse
-    mv a7,a1 # we parsed a do/don't so we are now are enabled/disabled
-    j d3p2_search_mul
+    li      t0,'d'
+    lb      a1,(s1)
+    bne     a1,t0,d3p2_try_parse_mul
+    addi    s1,s1,1                                                   # ok because this _was_ a 'd'
+    mv      a0,s1                                                     # setup for call parse_do_dont
+    call    parse_do_dont
+    beqz    a0,d3p2_search_mul                                        # if wasn't a do or don't then continue parsing from s1
+    mv      s1,a2                                                     # update pointer if we did parse a do/don't so we don't reparse
+    mv      a7,a1                                                     # we parsed a do/don't so we are now are enabled/disabled
+    j       d3p2_search_mul
 d3p2_try_parse_mul:
-    bnez    a7,d3p2_enabled_parse # if muls are disabled, no point in parsing until we enable again
-    addi s1,s1,1 # it wasn't a 'd' because we're here but we're disabled so just skip
-    j d3p2_search_mul
+    bnez    a7,d3p2_enabled_parse                                     # if muls are disabled, no point in parsing until we enable again
+    addi    s1,s1,1                                                   # it wasn't a 'd' because we're here but we're disabled so just skip
+    j       d3p2_search_mul
 d3p2_enabled_parse:
     li      t0,'m'
     lb      a1,(s1)                                                   # a1 = *input
@@ -188,7 +188,7 @@ d3p2_enabled_parse:
     j       d3p2_search_mul
 
 d3p2_done:
-    la      a0,part1_fmt
+    la      a0,part2_fmt
     mv      a1,s0
     call    printf
 
@@ -213,31 +213,31 @@ d3p2_done_early:
 # a1 - enabled/disabled
 # a2 - end of input we parsed to skip ahead
 parse_do_dont:
-    li t0,'o'
-    lb t1,(a0)
-    bne t1,t0,parse_dd_fail
-    addi a0,a0,1 # next input, we have parsed "do" now
-    mv a2,a0 # character after "do" even if we don't parse "don't"
-    li t0,'n'
-    lb t1,(a0)
-    bne t1,t0,parse_dd_enable # when this fails, we're enabled
-    addi a0,a0,1
-    li t0,39 # ' in ascii
-    lb t1,(a0)
-    bne t1,t0,parse_dd_enable
-    addi a0,a0,1
-    li t0,'t'
-    lb t1,(a0)
-    bne t1,t0,parse_dd_enable
-    addi a2,a0,1 # we parsed "don't"! put char after t into a2
+    li      t0,'o'
+    lb      t1,(a0)
+    bne     t1,t0,parse_dd_fail
+    addi    a0,a0,1                                                   # next input, we have parsed "do" now
+    mv      a2,a0                                                     # character after "do" even if we don't parse "don't"
+    li      t0,'n'
+    lb      t1,(a0)
+    bne     t1,t0,parse_dd_enable                                     # when this fails, we're enabled
+    addi    a0,a0,1
+    li      t0,39                                                     # ' in ascii
+    lb      t1,(a0)
+    bne     t1,t0,parse_dd_enable
+    addi    a0,a0,1
+    li      t0,'t'
+    lb      t1,(a0)
+    bne     t1,t0,parse_dd_enable
+    addi    a2,a0,1                                                   # we parsed "don't"! put char after t into a2
 parse_dd_disable:
-    li a0,1 # successfully parsed (use a1 and a2)
-    li a1,0 # parsed disable
+    li      a0,1                                                      # successfully parsed (use a1 and a2)
+    li      a1,0                                                      # parsed disable
     ret
 parse_dd_enable:
-    li a0,1 # successfully parsed (use a1 and a2)
-    li a1,1 # parsed enable
-    ret # a2 set up by parsing
+    li      a0,1                                                      # successfully parsed (use a1 and a2)
+    li      a1,1                                                      # parsed enable
+    ret                                                               # a2 set up by parsing
 parse_dd_fail:
-    li a0,0 # didn't even parse an 'o' just return
+    li      a0,0                                                      # didn't even parse an 'o' just return
     ret
