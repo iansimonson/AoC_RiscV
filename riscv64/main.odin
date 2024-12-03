@@ -5,7 +5,6 @@ import "core:os"
 import "core:strconv"
 import "core:mem"
 import "base:runtime"
-import "core:time"
 
 unimplemented :: proc "c" ([]u8) {
     context = runtime.default_context()
@@ -17,16 +16,14 @@ solutions_p1 := [25]Solve_Fn{
     0 = day1_part1,
     1 = day2_part1,
     2 = day3_part1,
-    3 = day4_part1,
-    4..<25 = unimplemented,
+    3..<25 = unimplemented,
 }
 
 solutions_p2 := [25]Solve_Fn{
     0 = day1_part2,
     1 = day2_part2,
     2 = day3_part2,
-    3 = day4_part2,
-    4..<25 = unimplemented,
+    3..<25 = unimplemented,
 }
 
 main :: proc() {
@@ -53,12 +50,8 @@ main :: proc() {
     }
 
     fmt.printfln("Solving day %v", day)
-    start := time.now()
     solutions_p1[day - 1](input)
-    end_p1 := time.now()
     solutions_p2[day - 1](input)
-    end_p2 := time.now()
-    fmt.printfln("Timing: p1: %v, p2: %v", time.diff(start, end_p1), time.diff(end_p1, end_p2))
     fmt.println("Done...")
 }
 
@@ -71,6 +64,4 @@ foreign {
     day2_part2 :: proc "c" (input: []u8) ---
     day3_part1 :: proc "c" (input: []u8) ---
     day3_part2 :: proc "c" (input: []u8) ---
-    day4_part1 :: proc "c" (input: []u8) ---
-    day4_part2 :: proc "c" (input: []u8) ---
 }
