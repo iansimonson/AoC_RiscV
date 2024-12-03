@@ -1,4 +1,4 @@
-    .global is_digit,string_eq,parse_int_range,parse_int,sort_int
+    .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
 
     .equ    ZERO, 48
     .equ    COLON, 58                                             # because COLON is one after '9'
@@ -186,3 +186,8 @@ sort_int:
     mv      ra,a7                                                 # restore the ra
 sort_int_done:
     ret
+
+
+    .data
+part1_fmt: .string "Part1: %d\n"
+part2_fmt: .string "Part2: %d\n"

@@ -203,8 +203,6 @@ is_safe_done:
 
     .data
 d2p1_fmt:
-.string "Part1:
-    %d\n"
+.string "Part1: %d\n"
 d2p2_fmt:
-.string "Part2:
-    %d\n"
+.string "Part2: %d\n"

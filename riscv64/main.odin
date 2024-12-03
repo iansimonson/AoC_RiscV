@@ -5,6 +5,7 @@ import "core:os"
 import "core:strconv"
 import "core:mem"
 import "base:runtime"
+import "core:time"
 
 unimplemented :: proc "c" ([]u8) {
     context = runtime.default_context()
@@ -52,8 +53,12 @@ main :: proc() {
     }
 
     fmt.printfln("Solving day %v", day)
+    start := time.now()
     solutions_p1[day - 1](input)
+    end_p1 := time.now()
     solutions_p2[day - 1](input)
+    end_p2 := time.now()
+    fmt.printfln("Timing: p1: %v, p2: %v", time.diff(start, end_p1), time.diff(end_p1, end_p2))
     fmt.println("Done...")
 }
 
