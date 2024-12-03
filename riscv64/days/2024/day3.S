@@ -68,7 +68,7 @@ d3p1_search_mul:
     mv      a0,s1
     call    parse_int                                                 # parse second number
     mv      s1,a1                                                     # update pointer after int
-    bge     s1,s3,d3p1_done                                           # if we're beyond the actual end of input there's no ')'
+    bge     s1,s3,d3p1_done                                           # when we're beyond the actual end of input there's no ')'
     slti    t0,a0,1000                                                # check second number is 3 chars or less
     beqz    t0,d3p1_search_mul                                        # invalid
     mul     a6,a6,a0                                                  # multiply the two numbers
@@ -130,12 +130,12 @@ d3p2_search_mul:
     addi    s1,s1,1                                                   # ok because this _was_ a 'd'
     mv      a0,s1                                                     # setup for call parse_do_dont
     call    parse_do_dont
-    beqz    a0,d3p2_search_mul                                        # if wasn't a do or don't then continue parsing from s1
+    beqz    a0,d3p2_search_mul                                        # when wasn't a do or don't then continue parsing from s1
     mv      s1,a2                                                     # update pointer if we did parse a do/don't so we don't reparse
     mv      a7,a1                                                     # we parsed a do/don't so we are now are enabled/disabled
     j       d3p2_search_mul
 d3p2_try_parse_mul:
-    bnez    a7,d3p2_enabled_parse                                     # if muls are disabled, no point in parsing until we enable again
+    bnez    a7,d3p2_enabled_parse                                     # when muls are disabled, no point in parsing until we enable again
     addi    s1,s1,1                                                   # it wasn't a 'd' because we're here but we're disabled so just skip
     j       d3p2_search_mul
 d3p2_enabled_parse:
@@ -176,7 +176,7 @@ d3p2_enabled_parse:
     mv      a0,s1
     call    parse_int                                                 # parse second number
     mv      s1,a1                                                     # update pointer after int
-    bge     s1,s3,d3p2_done                                           # if we're beyond the actual end of input there's no ')'
+    bge     s1,s3,d3p2_done                                           # when we're beyond the actual end of input there's no ')'
     slti    t0,a0,1000                                                # check second number is 3 chars or less
     beqz    t0,d3p2_search_mul                                        # invalid
     mul     a6,a6,a0                                                  # multiply the two numbers
