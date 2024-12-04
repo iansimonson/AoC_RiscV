@@ -1,0 +1,21 @@
+    .macro AOC_PROLOGUE
+    addi   sp,sp,-64
+    sd     ra,0(sp)
+    sd     fp,8(sp)
+    sd     s1,16(sp)
+    sd     s2,24(sp)
+    sd     s3,32(sp)
+    sd     s4,40(sp)
+    sd     s5,48(sp)
+    .endm
+
+    .macro AOC_EPILOGUE
+    ld     ra,0(sp)
+    ld     fp,8(sp)
+    ld     s1,16(sp)
+    ld     s2,24(sp)
+    ld     s3,32(sp)
+    ld     s4,40(sp)
+    ld     s5,48(sp)
+    addi   sp,sp,64
+    .endm

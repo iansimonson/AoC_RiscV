@@ -1,7 +1,8 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
+    .global grid_load_neighbor_offsets,grid_find_width
 
     .equ    ZERO, 48
-    .equ    COLON, 58                                             # because COLON is one after '9'
+    .equ    COLON, 58                                                                 # because COLON is one after '9'
     .equ    NEWLINE, 0x0a
 
     .text
@@ -86,18 +87,18 @@ parse_int_loop_iter:
 parse_int_loop:
     lb      a1,(t5)
 
-    slti    t0,a1,ZERO                                            # is_digit inlined
+    slti    t0,a1,ZERO                                                                # is_digit inlined
     xori    t0,t0,1
     slti    t1,a1,COLON
     and     t3,t0,t1
-    beqz    t3,parse_int_done                                     # if !is_digit break
+    beqz    t3,parse_int_done                                                         # if !is_digit break
 
-    addi    a1,a1,-ZERO                                           # otherwise keep parsing int
+    addi    a1,a1,-ZERO                                                               # otherwise keep parsing int
     mul     a0,a0,t4
     add     a0,a0,a1
     j       parse_int_loop_iter
 parse_int_done:
-    mv      a1,t5                                                 # ptr to 1 past the number (end)
+    mv      a1,t5                                                                     # ptr to 1 past the number (end)
     ret
 
 # recursive quick_sort function
@@ -107,56 +108,56 @@ parse_int_done:
 # a1 - lo - inclusive (index, not byte size)
 # a2 - hi - inclusive
 quick_sort_int:
-    .equ    IDX_SIZE, 4                                           # int size (4 bytes)
+    .equ    IDX_SIZE, 4                                                               # int size (4 bytes)
     bge     a1,a2,qs_done_early
     bltz    a1,qs_done_early
 
-    addi    sp,sp,-64                                             # prologue
+    addi    sp,sp,-64                                                                 # prologue
     sd      ra,0(sp)
     sd      fp,8(sp)
     sd      s1,16(sp)
     sd      s2,24(sp)
     sd      s3,32(sp)
 
-    mv      s1,a1                                                 # save lo for later
-    mv      s2,a2                                                 # save hi
+    mv      s1,a1                                                                     # save lo for later
+    mv      s2,a2                                                                     # save hi
 
-    slli    a1,a1,2                                               # byte size
+    slli    a1,a1,2                                                                   # byte size
     slli    a2,a2,2
 
 qs_partition:
-    add     t0,a0,a2                                              # t0 = A + hi (last element)
-    mv      t3,t0                                                 # t3 = end = hi
-    lw      t0,(t0)                                               # pivot = A[hi]
-    slli    t1,s1,2                                               # pivot index is lo
-    mv      t2,t1                                                 # for j = lo
+    add     t0,a0,a2                                                                  # t0 = A + hi (last element)
+    mv      t3,t0                                                                     # t3 = end = hi
+    lw      t0,(t0)                                                                   # pivot = A[hi]
+    slli    t1,s1,2                                                                   # pivot index is lo
+    mv      t2,t1                                                                     # for j = lo
     j       qs_partition_loop
 qs_partition_loop_incr:
-    addi    t2,t2,IDX_SIZE                                        # j += 1
+    addi    t2,t2,IDX_SIZE                                                            # j += 1
 qs_partition_loop:
-    add     a3,a0,t2                                              # A + j
+    add     a3,a0,t2                                                                  # A + j
     beq     a3,t3,qs_partition_loop_done
-    lw      t4,(a3)                                               # t4 = A[j]
+    lw      t4,(a3)                                                                   # t4 = A[j]
     bgt     t4,t0,qs_partition_loop_incr
-    add     t5,a0,t1                                              # t5 = A + i
-    lw      a4,(t5)                                               # swap A[i] with A[j]
+    add     t5,a0,t1                                                                  # t5 = A + i
+    lw      a4,(t5)                                                                   # swap A[i] with A[j]
     sw      t4,(t5)
     sw      a4,(a3)
     addi    t1,t1,IDX_SIZE
     j       qs_partition_loop_incr
 qs_partition_loop_done:
-    add     t5,a0,t1                                              # t5 = A + pivot index (i)
-    lw      t4,(t3)                                               # t4 = A[hi]
-    lw      a4,(t5)                                               # a4 = A[i]
+    add     t5,a0,t1                                                                  # t5 = A + pivot index (i)
+    lw      t4,(t3)                                                                   # t4 = A[hi]
+    lw      a4,(t5)                                                                   # a4 = A[i]
     sw      a4,(t3)
     sw      t4,(t5)
 
-    srli    s3,t1,2                                               # save off pivot index as index
-    mv      a1,s1                                                 # lo = lo
-    addi    a2,s3,-1                                              # hi = p - 1
+    srli    s3,t1,2                                                                   # save off pivot index as index
+    mv      a1,s1                                                                     # lo = lo
+    addi    a2,s3,-1                                                                  # hi = p - 1
     call    quick_sort_int
-    addi    a1,s3,1                                               # lo = p + 1
-    mv      a2,s2                                                 # hi = hi
+    addi    a1,s3,1                                                                   # lo = p + 1
+    mv      a2,s2                                                                     # hi = hi
     call    quick_sort_int
 
 qs_done:
@@ -165,7 +166,7 @@ qs_done:
     ld      s1,16(sp)
     ld      s2,24(sp)
     ld      s3,32(sp)
-    addi    sp,sp,64                                              # epilogue
+    addi    sp,sp,64                                                                  # epilogue
 
 qs_done_early:
     ret
@@ -179,15 +180,66 @@ qs_done_early:
 sort_int:
     beqz    a1,sort_int_done
     mv      t0,a1
-    li      a1,0                                                  # starting index == 0
-    addi    a2,t0,-1                                              # hi = length - 1
-    mv      a7,ra                                                 # save return register b/c quick_sort doesn't use a7
+    li      a1,0                                                                      # starting index == 0
+    addi    a2,t0,-1                                                                  # hi = length - 1
+    mv      a7,ra                                                                     # save return register b/c quick_sort doesn't use a7
     call    quick_sort_int
-    mv      ra,a7                                                 # restore the ra
+    mv      ra,a7                                                                     # restore the ra
 sort_int_done:
     ret
 
+# THIS IS FOR ASCII GRIDS ONLY
+# given a pointer to the beginning of a row in a grid
+# return the width of the grid (including the newline)
+# a0 - the pointer
+# undefined if row doesn't end with newline or there's not
+# enough input
+# uses a0, t0, t1, and t2
+grid_find_width:
+    mv      t1,a0                                                                     # save off start of input
+grid_find_width_loop:
+    lb      t0,(a0)                                                                   # t0 = *input
+    addi    t0,t0,-NEWLINE                                                            # t0 -= '/n'
+    beqz    t0,grid_find_width_found
+    addi    a0,a0,1
+    j       grid_find_width_loop
+grid_find_width_found:
+    sub     t2,a0,t1                                                                  # t2 (width) = cur - start
+    addi    t2,t2,1                                                                   # inclusive of the newline
+    mv      a0,t2                                                                     # return result
+    ret
+
+# Loads an array with grid neighbor offsets
+# array must be allocated ahead of time
+# offsets are words (32-bit)
+# offsets are:
+# (-width-1) (-width) (-width+1)
+# -1 cell 1
+# (width-1) (width) (width+1)
+# cell is NOT in the array, it's just to help
+# the visual representation of each offset
+# a0 - pointer
+# a1 - grid width
+grid_load_neighbor_offsets:
+    sub     t0,zero,a1                                                                # -width
+    addi    t1,t0,-1                                                                  # -width - 1 (upper left neighbor)
+    sw      t1,(a0)                                                                   # store upper left offset
+    sw      t0,4(a0)                                                                  # store upper offset
+    addi    t1,t0,1                                                                   # -width + 1 (upper right neighbor)
+    sw      t1,8(a0)                                                                  # store upper right neighbor
+    li      t1,-1                                                                     # left neighbor
+    sw      t1,12(a0)
+    li      t1,1                                                                      # right neighbor
+    sw      t1,16(a0)
+    mv      t0,a1                                                                     # width
+    addi    t1,t0,-1                                                                  # width - 1 bottom left neighbor
+    sw      t1,20(a0)                                                                 # store bottom left
+    sw      t0,24(a0)                                                                 # store bottom
+    addi    t1,t0,1                                                                   # width + 1
+    sw      t1,28(a0)                                                                 # bottom right neighbor
 
     .data
-part1_fmt: .string "Part1: %d\n"
-part2_fmt: .string "Part2: %d\n"
+part1_fmt:
+    .string "Part1: %d\n"
+part2_fmt:
+    .string "Part2: %d\n"
