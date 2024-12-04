@@ -96,6 +96,13 @@ d4p1_done_early:
 # OK sounds easy enough, we're just looking for As instead
 # and checking that there are 2 Ms on the diagonals
 # and then that the opposite diagonal neighbor is an S
+# Changed approach slightly from above so it's not just
+# a bunch of branches and comparisons
+# for each diagonal, check that the upper part is either 'M' or 'S'
+# and the lower part is either 'M' or 'S'. Then sum the two values and
+# ensure it's 'M' + 'S' and not something else like 'M' + 'M'
+# if both diagonals are like that then success, and we don't have to care
+# which direction either diagonal is running
 day4_part2:
     AOC_PROLOGUE                                     # just save off all necessary registers so we can use everything
 
