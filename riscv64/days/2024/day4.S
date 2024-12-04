@@ -160,17 +160,17 @@ d4p2_check_diagonal1: # label just for organization
     bne          a5,a6,d4p2_outer_loop_incr          # c1 + c2 != M + S so could be S + S. not an X-MAS
 d4p2_check_diagonal2: # label just for organization
     lw           t0,8(s5)                            # top right offset
-    add          a1,s1,t0                            # ptr to top left neighbor
+    add          a1,s1,t0                            # ptr to top right neighbor
     blt          a1,s3,d4p2_outer_loop_incr          # out of bounds, not possible to have an X shape
     lb           t0,(a1)                             # t0 = character
     addi         t1,t0,-M
     seqz         t1,t1                               # set t1 true if 'M'
     addi         t2,t0,-S
     seqz         t2,t2                               # set t2 to true if 'S'
-    or           a4,t1,t2                            # a4 = true if the upper left is M or S
+    or           a4,t1,t2                            # a4 = true if the upper right is M or S
     mv           a5,t0                               # move the character into a5 for later use
     lw           t0,20(s5)                           # bottom left offset
-    add          a1,s1,t0                            # ptr to bottom right neighbor
+    add          a1,s1,t0                            # ptr to bottom left neighbor
     bge          a1,s2,d4p2_outer_loop_incr          # out of bounds, no X here
     lb           t0,(a1)
     addi         t1,t0,-M
