@@ -7,6 +7,7 @@
     sd     s3,32(sp)
     sd     s4,40(sp)
     sd     s5,48(sp)
+    sd     s6,56(sp)
     .endm
 
     .macro AOC_EPILOGUE
@@ -17,5 +18,6 @@
     ld     s3,32(sp)
     ld     s4,40(sp)
     ld     s5,48(sp)
+    ld     s6,56(sp)
     addi   sp,sp,64
     .endm

@@ -1,5 +1,6 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
     .global grid_load_neighbor_offsets,grid_find_width
+    .global unreachable
 
     .equ    ZERO, 48
     .equ    COLON, 58                                                                 # because COLON is one after '9'
@@ -238,8 +239,17 @@ grid_load_neighbor_offsets:
     addi    t1,t0,1                                                                   # width + 1
     sw      t1,28(a0)                                                                 # bottom right neighbor
 
+unreachable:
+    la a0,unreachable_str
+    call printf
+unreachable_loop:
+    j unreachable_loop
+
+
     .data
 part1_fmt:
     .string "Part1: %d\n"
 part2_fmt:
     .string "Part2: %d\n"
+unreachable_str:
+    .string "HOW DID WE GET HERE?\n"
