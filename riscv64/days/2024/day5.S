@@ -107,6 +107,15 @@ d5p1_done:
     AOC_EPILOGUE
     ret
 
+# This is basically the same thing as part 1
+# _but_ we skip initially valid sets and
+# when we get an invalid update set
+# then we bubble sort the invalid elements
+# upwards and validate again until we
+# have a valid set (this is why validate_update_set returns
+# the index of the invalid element. so we can swap it upwards
+# and recheck)
+# then once its validated we just grab the middle element like before
 day5_part2:
     AOC_PROLOGUE
 
