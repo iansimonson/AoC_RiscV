@@ -28,18 +28,30 @@ day5_part1:
     call malloc
     beqz a0,d5_die
     mv s3,a0 # store the rules array in s3
+    li a1,0
+    li a2,3000
+    call memset # zero the rules array
+
     li a0,100 # 100 values, num elements in s3 per value
     call malloc
     beqz a0,d5_die
     mv s4,a0 # store lengths array in s4
+    li a1,0
+    li a2,100
+    call memset # zero the lengths array
+
+    # don't need to memset this one because our parser returns len()
     li a0,30 # over allocate array for updates
     call malloc
     beqz a0,d5_die
     mv s5,a0 # s5 contains the update array
+
+    # we memset this one every new line of updates
     li a0,100
     call malloc
     beqz a0,d5_die
     mv s6,a0 # bool array
+
 d5p1_parse_rules:
     mv a0,s1 # input
     sub a1,s2,s1 # length
@@ -60,14 +72,33 @@ d5p1_parse_updates_outer_loop:
 
     mv s1,a0 # update input pointer
     slli a7,a1,1 # index to middle element
+d5p1_check_updates_loop_decr:
     addi a1,a1,-1 # len-1 (last  element in update array)
 d5p1_check_updates_loop:
     bltz a1,d5p1_check_update_done
     add t0,s5,a1 # reverse iterate elements
     lb t0,(t0) # t0 = update_array[a1]
-    
-
-
+    add t1,s6,t0 # index into the bool array "did this need to come after"
+    lb t1,(t1) # get the bool value
+    bnez t1,d5p1_parse_updates_outer_loop # this isn't a valid set of updates
+    # for each value that has to be after this one, set it true in the bool array
+    mv t2,t0 # t2 = update_array[a1] aka offset into the rules len array
+    li t1,30 # rules array is 30 elements per value inline
+    mul t0,t0,t1 # offset into rules array
+    add a4,s3,t0 # ptr1 = rules_array + offset
+    add t3,s4,t2 # ptr2 = lengths_array + offset
+    lb a6,(t3) # get length of rules in rules array
+    add a6,a4,a6 # a6 is now a pointer that is the end of the rules array
+    # a4 is our pointer to the rules
+    # a6 is the pointer to the end of the rules
+d5p1_add_rules_loop:
+    beq a4,a6,d5p1_check_updates_loop_decr # done adding rules, check next update
+    lb t0,(a4) # t4 = *rule_ptr
+    add t1,s6,t0 # bool_ptr = bool_array + rule value
+    li t2, 1 # true
+    sb t2,(t1) # set the bool to true in the array
+    addi a4,a4,1 # increment the rules ptr
+    j d5p1_add_rules_loop
 
 d5p1_check_update_done:
     add t0,s5,a7 # addr of middle elemnt
