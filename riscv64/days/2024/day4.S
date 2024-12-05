@@ -61,7 +61,7 @@ d4p1_check_each_neighbor:
     mul          a2,a1,t1                            # 3 * offset, we need to make sure it's in-bounds
     add          t2,s1,a2
     blt          t2,s5,d4p1_check_each_neighbor_incr
-    bge          t2,s2,d4p1_check_each_neighbor_incr # if the S would be out of bounds, skip direction
+    bge          t2,s2,d4p1_check_each_neighbor_incr # when the S would be out of bounds, skip direction
     li           a0,X                                # we were reusing a0 so make it X now just in case
 # a0 == 'X' right now in low bytes
 # so lets just << 8 unsigned and or in next byte
@@ -101,7 +101,7 @@ d4p1_done_early:
 # for each diagonal, check that the upper part is either 'M' or 'S'
 # and the lower part is either 'M' or 'S'. Then sum the two values and
 # ensure it's 'M' + 'S' and not something else like 'M' + 'M'
-# if both diagonals are like that then success, and we don't have to care
+# when both diagonals are like that then success, and we don't have to care
 # which direction either diagonal is running
 day4_part2:
     AOC_PROLOGUE                                     # just save off all necessary registers so we can use everything

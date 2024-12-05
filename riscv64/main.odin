@@ -16,14 +16,18 @@ solutions_p1 := [25]Solve_Fn{
     0 = day1_part1,
     1 = day2_part1,
     2 = day3_part1,
-    3..<25 = unimplemented,
+    3 = day4_part1,
+    4 = day5_part1,
+    5..<25 = unimplemented,
 }
 
 solutions_p2 := [25]Solve_Fn{
     0 = day1_part2,
     1 = day2_part2,
     2 = day3_part2,
-    3..<25 = unimplemented,
+    3 = day4_part2,
+    4 = day5_part2,
+    5..<25 = unimplemented,
 }
 
 main :: proc() {
@@ -64,4 +68,8 @@ foreign {
     day2_part2 :: proc "c" (input: []u8) ---
     day3_part1 :: proc "c" (input: []u8) ---
     day3_part2 :: proc "c" (input: []u8) ---
+    day4_part1 :: proc "c" (input: []u8) ---
+    day4_part2 :: proc "c" (input: []u8) ---
+    day5_part1 :: proc "c" (input: []u8) ---
+    day5_part2 :: proc "c" (input: []u8) ---
 }
