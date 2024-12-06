@@ -19,14 +19,14 @@ day6_part1:
 
     li           s0,0                                              # result
     mv           s1,a0                                             # input
-    mv s2,a1 # save off for now
+    mv s2,a1 # save off length for now
 
     mv a0,a1 # make a copy because we're going to be destructive
     call malloc # create copy buffer
     beqz a0,day6_die # if malloc fails nothing we can do
     
     # a0 is already dst
-    mv a1,s1 # src
+    mv a1,s1 # src input
     mv a2,s2 # length
     call memcpy # a0 is still dest
     mv s1,a0 # we'll use our copy as the input
