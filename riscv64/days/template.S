@@ -10,6 +10,11 @@
 dayX_part1:
     AOC_PROLOGUE
 
+    li           s0,0                                              # result
+    mv           s1,a0                                             # input
+    add          s2,a0,a1                                          # end ptr
+
+
 dXp1_done:
     la a0,part1_fmt
     mv a1,s0
@@ -20,6 +25,11 @@ dXp1_done:
 
 dayX_part2:
     AOC_PROLOGUE
+
+    li           s0,0                                              # result
+    mv           s1,a0                                             # input
+    add          s2,a0,a1                                          # end ptr
+
 
 dXp2_done:
     la a0,part1_fmt
