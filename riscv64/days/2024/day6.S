@@ -105,9 +105,12 @@ d6p1_done:
 
 # We're going to start the _exact_ same way as part 1
 # travel the grid marking 'Y's along the path
-# the _only_ difference now is the obstruction
-# has to keep track of if it's been hit
-# and from what direction. If it's hit from a direction
+# the _only_ difference now is we check each 'Y'
+# to see if that could become an obstruction
+# and we need a new 4 * input_len bool array
+# to track if we've visited this location in
+# the particular direction we're travelling
+# If we ever hit any space from a direction
 # twice then we're in a loop, add 1 and continue
 # when we get out of the grid then no loop
 day6_part2:
