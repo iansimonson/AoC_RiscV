@@ -312,7 +312,3 @@ d6_directions:
 d6_directions_end:
     .word        0                                          # one past the direction end for looping
 
-d6_hit_obstruction:
-    .space       4, 0                                       # bools of "were we hit from direction X"
-d6_hit_obstruction_end:
-    .word        0                                          # one past the hit end
