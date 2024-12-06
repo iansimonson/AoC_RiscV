@@ -9,7 +9,7 @@
 
     .equ         START, '^'
     .equ         NEWLINE, '\n'
-    .equ         HASH, '                                    #'
+    .equ         HASH, '#'
     .equ         Y, 'Y'
 
     .text
