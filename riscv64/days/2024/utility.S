@@ -1,6 +1,6 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
     .global grid_load_neighbor_offsets,grid_find_width
-    .global unreachable
+    .global unreachable,ensure_character,parse_i64,parse_list_int
 
     .equ    ZERO, 48
     .equ    COLON, 58                                                                 # because COLON is one after '9'
@@ -101,6 +101,59 @@ parse_int_loop:
 parse_int_done:
     mv      a1,t5                                                                     # ptr to 1 past the number (end)
     ret
+
+# On riscv64 parse_int is already parsing
+# register sized integers. But putting this
+# here in case I want to expand it for esp32c3
+# in which case it'll be a lot more work
+parse_i64:
+    j parse_int # j is ok here b/c it doesn't change any registers
+
+
+# Parses a list of integers delimited
+# by a single character (, or ' ' e.g.)
+# until we hit newline
+# The memory we parse into must be provided
+# assume 32-bit values (no overflow checking)
+# a0 - start of input
+# a1 - pointer to array
+# RETURNS:
+# a0 - one past the end of list (skips newline)
+# a1 - still pointer to array
+# a2 - number of ints parsed
+parse_list_int:
+    mv a3,a0
+    mv a4,a1
+    li a6,0 # number of elements
+pli_loop:
+    mv a0,a3
+
+    mv a7,ra # store off ra b/c we're about to call
+    call parse_int
+    mv ra,a7 # restore ra
+
+    beq a1,a3,pli_loop_done # we didn't parse any int
+    
+    # parsed a new int
+    mv a3,a1 # store the next input ptr
+    mv t0,a4 # array to write into
+    slli t1,a6,2 # turn int count into byte offset
+    add t0,t0,t1 # offset into parse integer array
+    sw a0,(t0) # store the integer we parsed
+    addi a6,a6,1 # increment length now
+
+    lb t0,(a3) # check what value we are at
+    addi t0,t0,-NEWLINE # did we hit a newline?
+    addi a3,a3,1 # either way skip the delimiter
+    beqz t0,pli_loop_done # it was a newline, done
+    j pli_loop # was not a newline, parse the next int
+
+pli_loop_done:
+    mv a0,a3 # input ptr
+    mv a1,a4 # array
+    mv a2,a6 # count of ints
+    ret
+    
 
 # recursive quick_sort function
 # for things that are int size
@@ -245,6 +298,18 @@ unreachable:
 unreachable_loop:
     j unreachable_loop
 
+# calls unreachable if the character
+# at the given pointer value is not
+# the provided character
+# INPUT:
+# a0 - pointer to input ([^]u8)
+# a1 - character to check against
+ensure_character:
+    lb t0,(a0)
+    beq t0,a1,ensure_character_ok
+    call unreachable
+ensure_character_ok:
+    ret
 
     .data
 part1_fmt:
