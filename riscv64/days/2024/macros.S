@@ -1,5 +1,5 @@
     .macro AOC_PROLOGUE
-    addi   sp,sp,-80
+    addi   sp,sp,-96
     sd     ra,0(sp)
     sd     fp,8(sp)
     sd     s1,16(sp)
@@ -9,6 +9,9 @@
     sd     s5,48(sp)
     sd     s6,56(sp)
     sd     s7,64(sp)
+    sd     s8,72(sp)
+    sd     s9,80(sp)
+    sd     s10,88(sp)
     .endm
 
     .macro AOC_EPILOGUE
@@ -21,5 +24,8 @@
     ld     s5,48(sp)
     ld     s6,56(sp)
     ld     s7,64(sp)
-    addi   sp,sp,80
+    ld     s8,72(sp)
+    ld     s9,80(sp)
+    ld     s10,88(sp)
+    addi   sp,sp,96
     .endm
