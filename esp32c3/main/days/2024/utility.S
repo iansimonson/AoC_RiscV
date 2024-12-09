@@ -1,4 +1,7 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int
+    .global parse_i64,parse_list_int,mul_u64
+    .global grid_load_neighbor_offsets,grid_find_width
+    .global unreachable,part1_fmt,part2_fmt,ensure_character
 
     .equ    ZERO, 48
     .equ    COLON, 58                                             # because COLON is one after '9'
@@ -100,6 +103,89 @@ parse_int_done:
     mv      a1,t5                                                 # ptr to 1 past the number (end)
     ret
 
+# Parses a string to an integer
+# a0 - string input
+# returns:
+# a0 - bottom 64 bits
+# a1 - top 64 bits
+# a2 - pointer past the end
+parse_i64:
+    li t4,10
+    mv t5,a0
+    li a0,0
+    li a2,0
+    j parse_i64_loop
+parse_i64_loop_iter:
+    addi t5,t5,1
+parse_i64_loop:
+    lb a2,(t5)
+    slti    t0,a2,ZERO                                            # is_digit inlined
+    xori    t0,t0,1
+    slti    t1,a2,COLON
+    and     t3,t0,t1
+    beqz    t3,parse_i64_done                                     # if !is_digit break
+
+    addi a2,a2,-ZERO
+    mul a1,a1,t4
+    mulhu t1,a0,t4
+    mulu t2,a0,t4
+    add a1,a1,t2 # add in upper bits into a1
+    mv a0,t1
+    addu t0,a0,a2
+    sltu t1,t0,a0
+    addu a0,a0,a2
+    beqz t1,parse_i64_loop_iter
+    addi a1,a1,1 # account for overflow of lower bits
+    j parse_i64_loop_iter 
+parse_i64_done:
+    mv a2,t5 # one past end
+    ret
+
+
+# Parses a list of integers delimited
+# by a single character (, or ' ' e.g.)
+# until we hit newline
+# The memory we parse into must be provided
+# assume 32-bit values (no overflow checking)
+# a0 - start of input
+# a1 - pointer to array
+# RETURNS:
+# a0 - one past the end of list (skips newline)
+# a1 - still pointer to array
+# a2 - number of ints parsed
+parse_list_int:
+    mv a3,a0
+    mv a4,a1
+    li a6,0 # number of elements
+pli_loop:
+    mv a0,a3
+
+    mv a7,ra # store off ra b/c we're about to call
+    call parse_int
+    mv ra,a7 # restore ra
+
+    beq a1,a3,pli_loop_done # we didn't parse any int
+    
+    # parsed a new int
+    mv a3,a1 # store the next input ptr
+    mv t0,a4 # array to write into
+    slli t1,a6,2 # turn int count into byte offset
+    add t0,t0,t1 # offset into parse integer array
+    sw a0,(t0) # store the integer we parsed
+    addi a6,a6,1 # increment length now
+
+    lb t0,(a3) # check what value we are at
+    addi t0,t0,-NEWLINE # did we hit a newline?
+    addi a3,a3,1 # either way skip the delimiter
+    beqz t0,pli_loop_done # it was a newline, done
+    j pli_loop # was not a newline, parse the next int
+
+pli_loop_done:
+    mv a0,a3 # input ptr
+    mv a1,a4 # array
+    mv a2,a6 # count of ints
+    ret
+
 # recursive quick_sort function
 # for things that are int size
 # e.g. int
@@ -186,3 +272,111 @@ sort_int:
     mv      ra,a7                                                 # restore the ra
 sort_int_done:
     ret
+
+# multiply two u64s represented by
+# a lo/hi 32 bit register values
+# returns the result. Assumes no overflow
+# and does _not_ return the "upper 64 bits"
+# of the multiplication
+# a0 - lhs low
+# a1 - lhs high
+# a2 - rhs low
+# a3 - rhs high
+# what to do:
+# given AB * CD:
+# mul B and D as full 64-bit values
+# store high bits in t1 and low bits in t0
+# multiply B * C and store just the low 32 b/c
+# otherwise it'd overflow into a 128 bit value
+# but this "low bits" is actually in the high bits of
+# the final result
+# then multiply A * D and store just the low 32 bits
+# but again these will be summed into the high bits
+# we'll ignore A * C b/c by definition those will
+# be in the low bits of the higher 64 
+mul_u64:
+    mulhu t1,a0,a2 # multiply B * D, upper register (summed w/ low registers below)
+    mulu t0,a0,a2 # multiply B * D, lower register (actual low result)
+    mulu t2,a0,a3 # multiply B * C, lower register (don't need upper b/c outside 64-bit)
+    mulu t3,a1,a2 # multiply A * D, lower register (don't need upper)
+    mv a0,t0
+    addu a1,t1,t2
+    addu a1,a1,t3
+    ret 
+
+# THIS IS FOR ASCII GRIDS ONLY
+# given a pointer to the beginning of a row in a grid
+# return the width of the grid (including the newline)
+# a0 - the pointer
+# undefined if row doesn't end with newline or there's not
+# enough input
+# uses a0, t0, t1, and t2
+grid_find_width:
+    mv      t1,a0                                                                     # save off start of input
+grid_find_width_loop:
+    lb      t0,(a0)                                                                   # t0 = *input
+    addi    t0,t0,-NEWLINE                                                            # t0 -= '/n'
+    beqz    t0,grid_find_width_found
+    addi    a0,a0,1
+    j       grid_find_width_loop
+grid_find_width_found:
+    sub     t2,a0,t1                                                                  # t2 (width) = cur - start
+    addi    t2,t2,1                                                                   # inclusive of the newline
+    mv      a0,t2                                                                     # return result
+    ret
+
+# Loads an array with grid neighbor offsets
+# array must be allocated ahead of time
+# offsets are words (32-bit)
+# offsets are:
+# (-width-1) (-width) (-width+1)
+# -1 cell 1
+# (width-1) (width) (width+1)
+# cell is NOT in the array, it's just to help
+# the visual representation of each offset
+# a0 - pointer
+# a1 - grid width
+grid_load_neighbor_offsets:
+    sub     t0,zero,a1                                                                # -width
+    addi    t1,t0,-1                                                                  # -width - 1 (upper left neighbor)
+    sw      t1,(a0)                                                                   # store upper left offset
+    sw      t0,4(a0)                                                                  # store upper offset
+    addi    t1,t0,1                                                                   # -width + 1 (upper right neighbor)
+    sw      t1,8(a0)                                                                  # store upper right neighbor
+    li      t1,-1                                                                     # left neighbor
+    sw      t1,12(a0)
+    li      t1,1                                                                      # right neighbor
+    sw      t1,16(a0)
+    mv      t0,a1                                                                     # width
+    addi    t1,t0,-1                                                                  # width - 1 bottom left neighbor
+    sw      t1,20(a0)                                                                 # store bottom left
+    sw      t0,24(a0)                                                                 # store bottom
+    addi    t1,t0,1                                                                   # width + 1
+    sw      t1,28(a0)                                                                 # bottom right neighbor
+
+unreachable:
+    la a0,unreachable_str
+    call printf
+unreachable_loop:
+    j unreachable_loop
+
+# calls unreachable if the character
+# at the given pointer value is not
+# the provided character
+# INPUT:
+# a0 - pointer to input ([^]u8)
+# a1 - character to check against
+ensure_character:
+    lb t0,(a0)
+    beq t0,a1,ensure_character_ok
+    call unreachable
+ensure_character_ok:
+    ret
+
+    .data
+part1_fmt:
+    .string "Part1: %d\n"
+part2_fmt:
+    .string "Part2: %d\n"
+unreachable_str:
+    .string "HOW DID WE GET HERE?\n"
