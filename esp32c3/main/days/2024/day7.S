@@ -13,7 +13,8 @@
 day7_part1:
     AOC_PROLOGUE
 
-    li           s0,0                                        # result
+    li           s0,0                                        # result lower
+    li           s9,0                                        # result upper
     mv           s1,a0                                       # input
     add          s2,a0,a1                                    # end ptr
 
@@ -57,12 +58,17 @@ d7p1_outer_loop:
     li           a7,2                                        # just add and mul
     call         d7_can_make_number
     beqz         a0,d7p1_outer_loop
-    add          s0,s0,s3
+    add          t0,s0,s3
+    sltu         t1,t0,s0 # check overflow
+    mv           s0,t0
+    add          s9,s9,s4 # add upper
+    add          s9,s9,t1 # add the carry
     j            d7p1_outer_loop
 
 d7p1_done:
     la           a0,d7p1_fmt
     mv           a1,s0
+    mv           a2,s9
     call         printf
 
     addi         sp,sp,120                                   # free the stack array we made before
@@ -113,15 +119,20 @@ d7p2_outer_loop:
     addi         a4,s5,4                                     # start with the second parsed integer
     addi         a5,s6,-1                                    # size of rest of array
     la           a6,ops                                      # the ops global array
-    li           a7,2                                        # just add and mul
+    li           a7,3                                        # just add and mul
     call         d7_can_make_number
     beqz         a0,d7p2_outer_loop
-    add          s0,s0,s3
+    add          t0,s0,s3
+    sltu         t1,t0,s0 # check overflow
+    mv           s0,t0
+    add          s9,s9,s4 # add upper
+    add          s9,s9,t1 # add the carry
     j            d7p2_outer_loop
 
 d7p2_done:
     la           a0,d7p2_fmt
     mv           a1,s0
+    mv           a2,s9
     call         printf
 
     addi         sp,sp,120                                   # free the stack array we made before
@@ -274,8 +285,8 @@ ops_concat:
 ops_end:
     .word       0
 d7p1_fmt:
-    .string      "Part1: %u\n"
+    .string      "Part1: %zu\n"
 d7p2_fmt:
-    .string      "Part2: %u\n"
+    .string      "Part2: %zu\n"
 d7p1_debug_fmt:
     .string      "MATCHED: %u\n"
