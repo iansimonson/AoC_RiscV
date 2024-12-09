@@ -180,13 +180,15 @@ d7_can_make_number:
     # but it's _FINE_
     addi         sp,sp,-80                                   # for saving off registers
     sw           ra,72(sp)                                   # save RA register
-    sw           s0,0(sp)                                    # value we need
-    sw           s1,8(sp)                                    # value we have
-    sw           s2,16(sp)                                   # next value we can use
-    sw           s3,24(sp)                                   # rest of slice
-    sw           s4,32(sp)                                   # remaining num count
-    sw           s5,40(sp)                                   # ops
-    sw           s6,48(sp)                                   # num ops
+    sw           s0,0(sp)                                    # value we need low
+    sw           s1,4(sp)                                    # value we need high
+    sw           s2,8(sp)                                    # next value we can use
+    sw           s3,12(sp)                                   # value we have low
+    sw           s4,16(sp)                                   # value we have high
+    sw           s5,20(sp)                                   # remaining integers
+    sw           s6,24(sp)                                   # remaining int len
+    sw           s7,28(sp)                                   # ops
+    sw           s8,32(sp)                                   # ops len
 
     bne          a0,a2,d7_can_make_not_same_value # check both lower and upper
     bne          a1,a3,d7_can_make_not_same_value # registers to see if it's the same value
@@ -233,8 +235,8 @@ d7_can_make_loop:
     lw           a7,64(sp)                                   # full ops list len
     call         d7_can_make_number                          # recursive call
     bnez         a0,d7_can_make_yes                          # true (1) so we're good!
-    addi         s7,s5,4                                     # increment ops array
-    addi         s8,s6,-1                                    # decrement remaining ops
+    addi         s7,s7,4                                     # increment ops array
+    addi         s8,s8,-1                                    # decrement remaining ops
     j            d7_can_make_loop
 
 d7_can_make_same_value:
@@ -249,13 +251,15 @@ d7_can_make_yes:
 d7_can_make_done:
 # restore all the s registers and ra
     lw           ra,72(sp)
-    lw           s0,0(sp)                                    # value we need
-    lw           s1,8(sp)                                    # value we have
-    lw           s2,16(sp)                                   # next value we can use
-    lw           s3,24(sp)                                   # rest of slice
-    lw           s4,32(sp)                                   # remaining num count
-    lw           s5,40(sp)                                   # ops
-    lw           s6,48(sp)                                   # num ops
+    lw           s0,0(sp)                                    # value we need low
+    lw           s1,4(sp)                                    # value we need high
+    lw           s2,8(sp)                                    # next value we can use
+    lw           s3,12(sp)                                   # value we have low
+    lw           s4,16(sp)                                   # value we have high
+    lw           s5,20(sp)                                   # remaining integers
+    lw           s6,24(sp)                                   # remaining int len
+    lw           s7,28(sp)                                   # ops
+    lw           s8,32(sp)                                   # ops len
     addi         sp,sp,80
     ret
 
