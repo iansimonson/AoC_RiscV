@@ -256,7 +256,7 @@ d5p2_teardown:
 # they're not being used at this point
 parse_rules:
     addi         sp,sp,-16
-    sd           ra,(sp)                                           # need to save off ra b/c we call parse_int
+    sw           ra,(sp)                                           # need to save off ra b/c we call parse_int
 
     mv           a5,a0                                             # save these off
     mv           a6,a1                                             # so we can use
@@ -299,7 +299,7 @@ parse_rules_iter:
 parse_rules_done:
     addi         a0,a5,1                                           # should now point at the first set of updates
 
-    ld           ra,(sp)                                           # restore ra
+    lw           ra,(sp)                                           # restore ra
     addi         sp,sp,16
     ret
 
@@ -313,7 +313,7 @@ parse_rules_done:
 # a1 - number updates parsed
 parse_updates:
     addi         sp,sp,-16
-    sd           ra,(sp)                                           # need to save off ra b/c we call parse_int
+    sw           ra,(sp)                                           # need to save off ra b/c we call parse_int
 
     mv           a5,a0
     mv           a6,a1
@@ -336,7 +336,7 @@ parse_updates_done:
     addi         a0,a5,1                                           # skip the newline we found
     mv           a1,a4                                             # number of updates we parsed
 
-    ld           ra,(sp)                                           # restore ra
+    lw           ra,(sp)                                           # restore ra
     addi         sp,sp,16
     ret
 

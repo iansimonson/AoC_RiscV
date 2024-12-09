@@ -291,6 +291,7 @@ grid_load_neighbor_offsets:
     sw      t0,24(a0)                                                                 # store bottom
     addi    t1,t0,1                                                                   # width + 1
     sw      t1,28(a0)                                                                 # bottom right neighbor
+    ret
 
 unreachable:
     la a0,unreachable_str

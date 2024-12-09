@@ -1,5 +1,5 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int
-    .global parse_i64,parse_list_int,mul_u64
+    .global parse_u64,parse_list_int,mul_u64
     .global grid_load_neighbor_offsets,grid_find_width
     .global unreachable,part1_fmt,part2_fmt,ensure_character
 
@@ -104,40 +104,42 @@ parse_int_done:
     ret
 
 # Parses a string to an integer
+# MUST BE A POSITIVE INTEGER
+# ONLY DOES UNSIGNED STUFF
 # a0 - string input
 # returns:
 # a0 - bottom 64 bits
 # a1 - top 64 bits
 # a2 - pointer past the end
-parse_i64:
+parse_u64:
     li t4,10
     mv t5,a0
     li a0,0
     li a2,0
-    j parse_i64_loop
-parse_i64_loop_iter:
+    j parse_u64_loop
+parse_u64_loop_iter:
     addi t5,t5,1
-parse_i64_loop:
+parse_u64_loop:
     lb a2,(t5)
     slti    t0,a2,ZERO                                            # is_digit inlined
     xori    t0,t0,1
     slti    t1,a2,COLON
     and     t3,t0,t1
-    beqz    t3,parse_i64_done                                     # if !is_digit break
+    beqz    t3,parse_u64_done                                     # if !is_digit break
 
     addi a2,a2,-ZERO
     mul a1,a1,t4
     mulhu t1,a0,t4
-    mulu t2,a0,t4
+    mul t2,a0,t4
     add a1,a1,t2 # add in upper bits into a1
     mv a0,t1
-    addu t0,a0,a2
+    add t0,a0,a2
     sltu t1,t0,a0
-    addu a0,a0,a2
-    beqz t1,parse_i64_loop_iter
+    add a0,a0,a2
+    beqz t1,parse_u64_loop_iter
     addi a1,a1,1 # account for overflow of lower bits
-    j parse_i64_loop_iter 
-parse_i64_done:
+    j parse_u64_loop_iter 
+parse_u64_done:
     mv a2,t5 # one past end
     ret
 
@@ -296,12 +298,12 @@ sort_int_done:
 # be in the low bits of the higher 64 
 mul_u64:
     mulhu t1,a0,a2 # multiply B * D, upper register (summed w/ low registers below)
-    mulu t0,a0,a2 # multiply B * D, lower register (actual low result)
-    mulu t2,a0,a3 # multiply B * C, lower register (don't need upper b/c outside 64-bit)
-    mulu t3,a1,a2 # multiply A * D, lower register (don't need upper)
+    mul t0,a0,a2 # multiply B * D, lower register (actual low result)
+    mul t2,a0,a3 # multiply B * C, lower register (don't need upper b/c outside 64-bit)
+    mul t3,a1,a2 # multiply A * D, lower register (don't need upper)
     mv a0,t0
-    addu a1,t1,t2
-    addu a1,a1,t3
+    add a1,t1,t2
+    add a1,a1,t3
     ret 
 
 # THIS IS FOR ASCII GRIDS ONLY
@@ -353,6 +355,7 @@ grid_load_neighbor_offsets:
     sw      t0,24(a0)                                                                 # store bottom
     addi    t1,t0,1                                                                   # width + 1
     sw      t1,28(a0)                                                                 # bottom right neighbor
+    ret
 
 unreachable:
     la a0,unreachable_str

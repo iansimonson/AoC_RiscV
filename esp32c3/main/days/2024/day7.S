@@ -2,7 +2,7 @@
     .global      day7_part1,day7_part2                       # this file
     .global      printf,malloc,memset                        # libc
     .global      is_digit,string_eq,parse_int_range          # begin utility.S
-    .global      parse_int,parse_i64,parse_list_int,sort_int
+    .global      parse_int,parse_u64,parse_list_int,sort_int
     .global      grid_load_neighbor_offsets,grid_find_width
     .global      unreachable,ensure_character                # end utility.S
 
@@ -25,7 +25,7 @@ day7_part1:
 d7p1_outer_loop:
     beq          s1,s2,d7p1_done                             # out of input, done
     mv           a0,s1
-    call         parse_i64                                   # specifying here to make porting easier
+    call         parse_u64                                   # specifying here to make porting easier
     mv           s3,a0                                       # save off the number we're looking for (lower)
     mv           s4,a1                                       # higher bits
     mv           s1,a2                                       # update our input ptr
@@ -84,7 +84,7 @@ day7_part2:
 d7p2_outer_loop:
     beq          s1,s2,d7p2_done                             # out of input, done
     mv           a0,s1
-    call         parse_i64                                   # specifying here to make porting easier
+    call         parse_u64                                   # specifying here to make porting easier
     mv           s3,a0                                       # save off the number we're looking for (lower)
     mv           s4,a1                                       # higher bits
     mv           s1,a2                                       # update our input ptr
@@ -135,15 +135,15 @@ day7_die:
 # a2 - rhs (lower only)
 # returns a0, a1 - 64 bit value of add
 d7_add:
-    addu         t0,a0,a2
+    add         t0,a0,a2
     sltu         t1,t0,a0 # carry if less than
     mv a0,t0 # set a0 now
-    add a1,t1 # add carry if necessary
+    add a1,a1,t1 # add carry if necessary
     ret
 d7_mul:
     mulhu          t0,a0,a2
-    mulu           a0,a0,a2
-    mulu           a1,a2
+    mul           a0,a0,a2
+    mul           a1,a1,a2
     add            a1,a1,t0 # add carry from lower bits mult
     ret
 # requires non-zero values
@@ -154,9 +154,9 @@ d7_concat:
 d7_concat_loop:
     beqz         t0,d7_concat_loop_done
     mulhu         t3,a0,t1
-    mulu          t2,a0,t1
+    mul          t2,a0,t1
     mv a0,t2
-    mulu a1,t1
+    mul a1,a1,t1
     add a1,a1,t3
     div          t0,t0,t1
     j            d7_concat_loop
@@ -220,7 +220,7 @@ d7_can_make_loop:
     mv           a0,s3                                       # value we have
     mv           a1,s4
     mv           a2,s2                                       # next value we can use
-    ld           t0,(s7)                                     # load ops_add _value_ which is d7_add addr into t0
+    lw           t0,(s7)                                     # load ops_add _value_ which is d7_add addr into t0
     jalr         ra,t0                                       # jump to the next op
 # a0 is now the next number using that op
     mv           a2,a0                                       # move that into a1 for recursion
@@ -229,8 +229,8 @@ d7_can_make_loop:
     mv           a1,s1
     mv           a4,s5                                       # remaining ints
     mv           a5,s6                                       # remaining ints len
-    ld           a6,56(sp)                                   # the full ops list
-    ld           a7,64(sp)                                   # full ops list len
+    lw           a6,56(sp)                                   # the full ops list
+    lw           a7,64(sp)                                   # full ops list len
     call         d7_can_make_number                          # recursive call
     bnez         a0,d7_can_make_yes                          # true (1) so we're good!
     addi         s7,s5,4                                     # increment ops array

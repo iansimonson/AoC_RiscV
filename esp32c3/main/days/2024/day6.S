@@ -235,12 +235,12 @@ day6_die:
 # a0 - 1 if loop else 0
 d6_validate_obstruction:
     addi         sp,sp,-64
-    sd           ra,(sp)
-    sd           s0,8(sp)
-    sd           s1,16(sp)
-    sd           s2,24(sp)
-    sd           s3,32(sp)
-    sd           s4,40(sp)
+    sw           ra,(sp)
+    sw           s0,8(sp)
+    sw           s1,16(sp)
+    sw           s2,24(sp)
+    sw           s3,32(sp)
+    sw           s4,40(sp)
 
     mv           s0,a0                                      # save these off b/c we're going to call memset
     mv           s1,a1
@@ -296,12 +296,12 @@ d6_validate_obstruction_loop_detected:
 d6_validate_obstruction_off_grid:
     li           a0,0
 d6_validate_obstruction_done:
-    ld           ra,(sp)
-    ld           s0,8(sp)
-    ld           s1,16(sp)
-    ld           s2,24(sp)
-    ld           s3,32(sp)
-    ld           s4,40(sp)
+    lw           ra,(sp)
+    lw           s0,8(sp)
+    lw           s1,16(sp)
+    lw           s2,24(sp)
+    lw           s3,32(sp)
+    lw           s4,40(sp)
     addi         sp,sp,64
     ret
 
