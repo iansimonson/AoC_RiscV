@@ -53,16 +53,23 @@ day10_part1:
 
     mv a0,s1
     li a7,'9'
+    j d10p1_find_all_9s
+
+d10p1_find_all_9s_incr:
+    addi a0,a0,1
 d10p1_find_all_9s:
     beq a0,s2,d10p1_search_for_0s # hit end of input
     lb a1,(a0) # a1 := input[a0]
-    addi a0,a0,1 # a0 += 1
-    bne a1,a7,d10p1_find_all_9s # if a1 != '9' do continue
+    bne a1,a7,d10p1_find_all_9s_incr # if a1 != '9' do continue
     add a6,s5,s7 # tail of queue
     sub a2,a0,s1 # offset into input
     sw a2,(a6) # store in queue
     addi s7,s7,4 # increment tail
-    bne s7,s10,d10p1_find_all_9s # no need to wrap around
+    slli a2,a2,2 # offset into int array
+    add a2,s4,a2 # make a2 a pointer into int array
+    li t0,1
+    sw t0,(a2) # make 9s start with the value 1
+    bne s7,s10,d10p1_find_all_9s_incr # no need to wrap around
     li s7,0
     j d10p1_find_all_9s
 
@@ -93,12 +100,13 @@ d10p1_check_neighbors:
     blt t1,s1,d10p1_check_neighbors_incr # out of bounds
     bge t1,s2,d10p1_check_neighbors_incr # out of bounds
     lb t2,(t1) # get neighbor value
-    addi t2,-ZERO
-    beqz t2,d10p1_count_trails # we hit a zero, just count this
     addi t3,t2,1 # we only care about neighbors 1 less than current
     bne t3,a4,d10p1_check_neighbors_incr # not a valid path
+    addi t3,t2,-ZERO # we can move to t2, check if it's a zero
+    beqz t3,d10p1_count_trails # we hit a zero, just count this
     sub t3,t1,s1 # make t1 an index value
-    slli t3,2 # index into our int array
+    slli t3,t3,2 # index into our int array
+    add t3,s4,t3 # t3 now offset into int array
     lw t4,(t3) # current value
     add t5,t4,a7 # add our value to neighbor
     sw t5,(t3) # and write that back
