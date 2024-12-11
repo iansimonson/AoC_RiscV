@@ -22,7 +22,7 @@ day11_part1:
     mv           s1,a0                                      # input
     add          s2,a0,a1                                   # end ptr
 
-    li           s3,16000                                   # 1k of Stones
+    li           s3,64000                                   # 1k of Stones
 
 # we're going to do a kinda weird thing
 # we'll aldays have our "from" array in s4: s5
@@ -172,6 +172,11 @@ d11p1_done:
     mv           a1,s0
     call         printf
 
+    mv a0,s4
+    call free
+    mv a0,s6
+    call free
+
     AOC_EPILOGUE
     ret
 
@@ -184,7 +189,7 @@ day11_part2:
 
 
 d11p2_done:
-    la           a0,part1_fmt
+    la           a0,day11_fmt
     mv           a1,s0
     call         printf
 
