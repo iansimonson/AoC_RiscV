@@ -11,6 +11,10 @@
 
     .text
 
+# Find a 0. Do a BFS from that zero looking for a 9
+# Mark each node as "visited" as we add them to the queue
+# so if there are multiple paths we don't double count them
+# add the score for that 0 to s0 and move on to the next 0
 day10_part1:
     AOC_PROLOGUE
 
@@ -141,6 +145,21 @@ d10p1_done:
     AOC_EPILOGUE
     ret
 
+
+# Find all 9s in the input, we have an integer array
+# that's the same size as the grid. At the same position
+# of the 9, mark those as 1 in the int array
+# Add all the 9 indexes to the queue
+# BFS so doing all 9 positions, then all 8 positions, etc.
+# At eadch point, add our current value (e.g. 1 for the 9)
+# to a neighbor's integer value. If the previous neighbor
+# value was 0, we haven't visited here yet, add that neighbor
+# to the queue to expand later in the BFS.
+# So as we expand all 9s, we'll get some 2s and 3s etc in some
+# 8 positions, and then so on
+# when we hit a 0, we just add the current value (# of trails)
+# into s0 when the BFS queue is empty we've added all trail counts
+# to s0 and we're done
 day10_part2:
     AOC_PROLOGUE
 
