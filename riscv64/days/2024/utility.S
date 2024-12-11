@@ -1,7 +1,7 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
     .global grid_load_neighbor_offsets,grid_find_width
     .global unreachable,ensure_character,parse_i64,parse_list_int
-    .global clear_byte_range
+    .global clear_byte_range,count_digits
 
     .equ    ZERO, 48
     .equ    COLON, 58                                                                 # because COLON is one after '9'
@@ -312,6 +312,26 @@ clear_byte_range:
     j 0b
 1:
     ret
+
+# returns the number of digits
+# in a given number (decimal)
+# IN: a0 - number
+# OUT: a0 - num digits
+# number should be >= 0
+count_digits:
+    bnez a0,0f
+    mv t0,1
+    j 2f
+0:
+    li t0,0
+    li t1,10
+1: beqz a0,2f
+    div a0,a0,t1
+    addi t0,t0,1
+    j 1b
+2: mv a0,t0
+    ret
+
 
 # calls unreachable if the character
 # at the given pointer value is not
