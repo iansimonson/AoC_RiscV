@@ -305,12 +305,12 @@ unreachable_loop:
 # a1 - end
 clear_byte_range:
     li t0,0
-.O:
-    beq a0,a1,.1
+0:
+    beq a0,a1,1f
     sb t0,(a0)
     addi a0,a0,1
-    j .0
-.1:
+    j 0b
+1:
     ret
 
 # calls unreachable if the character
