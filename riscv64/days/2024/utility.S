@@ -1,6 +1,7 @@
     .global is_digit,string_eq,parse_int_range,parse_int,sort_int,part1_fmt,part2_fmt
     .global grid_load_neighbor_offsets,grid_find_width
     .global unreachable,ensure_character,parse_i64,parse_list_int
+    .global clear_byte_range
 
     .equ    ZERO, 48
     .equ    COLON, 58                                                                 # because COLON is one after '9'
@@ -298,6 +299,19 @@ unreachable:
     call printf
 unreachable_loop:
     j unreachable_loop
+
+# memset but only uses a0 and a1
+# a0 - start
+# a1 - end
+clear_byte_range:
+    li t0,0
+.O:
+    beq a0,a1,.1
+    sb t0,(a0)
+    addi a0,a0,1
+    j .0
+.1:
+    ret
 
 # calls unreachable if the character
 # at the given pointer value is not
