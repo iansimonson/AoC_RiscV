@@ -10,7 +10,7 @@
 value: .space 4 # actual value of this stone
 count: .space 4  # number of stones of this value
     .balign 8 # }
-node_sz = . - data # node_sz = sizeof(Int_Map)
+node_sz = . - value # node_sz = sizeof(Int_Map)
 
     .text
 day11_part1:
@@ -59,8 +59,8 @@ d11p1_simulate:
 d11p1_simulate_iter:
     beqz a7,d11p1_count_stones
     addi a7,a7,-1
-    mv a6,s4 # pointer to the "to" stones array
-    mv a5,s6 # pointer to "from" stones array
+    mv a6,s4 # pointer to the "from" stones array
+    mv a5,s6 # pointer to next append for "to" stones array
 d11p1_expand_stones:
     beqz s5,d11p1_expanded
     addi s5,s5,-1
@@ -82,24 +82,67 @@ d11p1_try_split:
     andi t2,a0,0x1 # check if even
     mv t0,t5 # restore
     mv t1,t6 # the values
-    bnez t0,d11p1_mul # not 0, so odd
+    bnez t2,d11p1_mul # not 0, so odd
     slli a0,a0,1 # half digits on each side but then *sizeof(u32)
     la a1,tens_array
     add a1,a1,a0
     lw a1,(a1)
     div t2,t0,a1 # value / ten muls == left side
     rem t3,t0,a1 # value % ten muls == right side
-    sw t2,(a5) # store the left value
-    sw t1,4(a5) # same count as before
-    sw t3,8(a5) # store the right value
-    sw t1,12(a5) # same count, basically doubled our stones
-    addi a5,a5,2*node_sz
-    addi s7,s7,2 # added 2 elements to to array
+    mv a2,s6
+d11p1_insert_loop1:
+    beq a2,a5,d11p1_didnt_find_insert1
+    lw t5,(a2)
+    beq t5,t2,d11p1_found_insert1
+    addi a2,a2,node_sz
+    j d11p1_insert_loop1
+d11p1_found_insert1:
+    lw t4,4(a2) # get the count at this point
+    add t4,t4,t1 # add count to prev count
+    sw t4,4(a2)
+    mv a2,s6
+    j d11p1_insert_loop2
+d11p1_didnt_find_insert1:
+    sw t2,(a5)
+    sw t1,4(a5)
+    addi a5,a5,node_sz
+    addi s7,s7,1
+    mv a2,s6
+d11p1_insert_loop2:
+    beq a2,a5,d11p1_didnt_find_insert2
+    lw t5,(a2)
+    beq t5,t3,d11p1_found_insert2
+    addi a2,a2,node_sz
+    j d11p1_insert_loop2
+d11p1_found_insert2:
+    lw t4,4(a2) # get the count at this point
+    add t4,t4,t1 # add count to prev count
+    sw t4,4(a2)
+    addi s7,s7,1
     j d11p1_expand_stones
-
+d11p1_didnt_find_insert2:
+    sw t3,(a5) # store the right value
+    sw t1,4(a5) # same count, basically doubled our stones
+    addi a5,a5,node_sz
+    addi s7,s7,1 # added 2 elements to to array
+    j d11p1_expand_stones
 d11p1_mul:
     li t2,2024 # otherwise mul 2024
-    mul t0,t0,t2
+    mul t0,t0,t2 # possible a split made this value, still search
+    mv a2,s6
+d11p1_insert_loop3:
+    beq a2,a5,d11p1_didnt_find_insert3
+    lw t5,(a2)
+    beq t5,t0,d11p1_found_insert3
+    addi a2,a2,node_sz
+    j d11p1_insert_loop3
+d11p1_found_insert3:
+    lw t4,4(a2)
+    add t4,t4,t1
+    sw t4,4(a2)
+    addi s7,s7,1
+    j d11p1_expand_stones
+d11p1_didnt_find_insert3:
     sw t0,(a5) # store the new value
     sw t1,4(a5) # count doesn't change
     addi s7,s7,1 # incr to count by 1
@@ -115,8 +158,8 @@ d11p1_expanded:
     j d11p1_simulate_iter
 
 d11p1_count_stones:
-    mv t0,s7 # last array we wrote to count
-    mv a0,s6 # last array
+    mv t0,s5 # since we always flip the arrays
+    mv a0,s4 # check the "from" array always
 d11p1_count_stones_loop:
     beqz t0,d11p1_done
     lw t1,4(a0) # stone count only

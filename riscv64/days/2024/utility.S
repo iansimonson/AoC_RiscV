@@ -320,7 +320,7 @@ clear_byte_range:
 # number should be >= 0
 count_digits:
     bnez a0,0f
-    mv t0,1
+    li t0,1
     j 2f
 0:
     li t0,0
