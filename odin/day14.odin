@@ -3,8 +3,8 @@ package solve
 import "core:os"
 import "core:strings"
 import "core:fmt"
-import "core:math/linalg"
-import "core:math"
+import "core:slice"
+import "core:time"
 
 WIDTH :: #config(WIDTH, 101)
 HEIGHT :: #config(HEIGHT, 103)
@@ -56,7 +56,59 @@ part1 :: proc(data: []u8) -> (result: int) {
     return
 }
 
+Bot :: struct {
+    point: [2]int,
+    velocity: [2]int,
+}
+
 part2 :: proc(data: []u8) -> (result: int) {
+    data := string(data)
+    quadrants: [4]int
+    bots: [dynamic]Bot
+    for line in strings.split_lines_iterator(&data) {
+        line := line
+        if len(line) == 0 do continue
+        point: [2]int
+        velocity: [2]int
+
+        eq := strings.index_byte(line, '=')
+        line = line[eq+1:]
+        point.x, line = parse_int(line)
+        assert(line[0] == ',')
+        point.y, line = parse_int(line[1:])
+
+        eq = strings.index_byte(line, '=')
+        line = line[eq+1:]
+        velocity.x, line = parse_int(line)
+        assert(line[0] == ',')
+        velocity.y, line = parse_int(line[1:])
+
+        append(&bots, Bot{point, velocity})
+    }
+    for &b in bots {
+        b.point += 6343 * b.velocity
+        b.point.x %%= WIDTH
+        b.point.y %%= HEIGHT
+    }
+    grid := make([]u8, (WIDTH+1) * (HEIGHT + 1))
+    defer delete(grid)
+    for i in 6343..<100000 { // I already ran through 6343 frames 10-15 frames / second manually
+        print_grid(grid, bots[:]) // BUT LOL my answer was 6355 I could've just ran this manually a few more frames
+        for &b in bots {
+            b.point += b.velocity
+            b.point.x %%= WIDTH
+            b.point.y %%= HEIGHT
+        }
+        for c, start in grid {
+            if c == 'X' && many_xs_diag(grid, start) {
+                fmt.println("=========")
+                fmt.println("TIME:", i, "MAYBE FOUND TREE")
+                fmt.println(string(grid))
+                fmt.println("==========")
+                time.sleep(1 * time.Second)
+            }
+        }
+    }
     return
 }
 
@@ -76,4 +128,30 @@ parse_int :: proc(d: string) -> (result: int, rem: string) #no_bounds_check {
         result *= -1
     }
     return
+}
+
+print_grid :: proc(grid: []u8, bots: []Bot) {
+    slice.fill(grid, '.')
+    for y in 0..<(HEIGHT+1) {
+        grid[y * (WIDTH + 1) + WIDTH] = '\n'
+    }
+    for b in bots {
+        grid[b.point.y * (WIDTH+1) + b.point.x] = 'X'
+    }
+}
+
+many_xs_diag :: proc(grid: []u8, start: int) -> bool {
+    offsets := []int{-WIDTH - 1, -WIDTH + 1}
+    next := start
+    for offset in offsets {
+        count: int = 1
+        for {
+            next += offset
+            if next < 0 || grid[next] == '\n' do break
+            if grid[next] != 'X' do break
+            count += 1
+        }
+        if count >= 5 do return true
+    }
+    return false
 }
