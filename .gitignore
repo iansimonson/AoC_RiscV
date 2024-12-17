@@ -3,3 +3,4 @@ sdkconfig*
 .cache
 build
 input*.txt
+*.exe
